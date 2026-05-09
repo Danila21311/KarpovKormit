@@ -116,6 +116,9 @@ module.exports = app;
 if (require.main === module) {
   app.listen(port, async () => {
     console.log(`Server listening on port ${port}`);
+    console.log(
+      `[startup] DATABASE_URL is ${process.env.DATABASE_URL ? "set" : "MISSING — add in Railway → KarpovKormit → Variables"}`
+    );
     try {
       await initDb();
       console.log("Database initialized.");
