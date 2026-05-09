@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Карпов Кормит — доставка ресторанной еды в Оренбурге: меню, фуршет за 2 дня, зона города +15 км, доставка 350 ₽, бесплатно от 2500 ₽. Тел. 89619296688.">
+  <title>Карпов Кормит — Доставка еды</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Карпов Кормит",
+    "telephone": "+79619296688",
+    "email": "Yurakarpov69@mail.ru",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "ул. Донецкая, 2/3",
+      "addressLocality": "Оренбург",
+      "addressCountry": "RU"
+    },
+    "servesCuisine": ["Русская", "Европейская", "Кавказская"],
+    "hasMenu": {
+      "@type": "Menu",
+      "name": "Меню доставки Карпов Кормит"
+    },
+    "sameAs": [
+      "https://eda.yandex.ru/r/kushat_podano?placeSlug=kushat_podano__vrjpx"
+    ]
+  }
+  </script>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="header__bar" role="banner">
+      <div class="container">
+        <div class="header__inner">
+        <a href="#" class="logo" aria-label="Карпов Кормит">
+          <img class="logo__img" src="assets/logo-main.png" alt="Карпов Кормит">
+        </a>
+        <a class="header__phone" href="tel:89619296688">
+          <span class="header__phone-label">Наш номер телефона:</span>
+          <span class="header__phone-value">89619296688</span>
+        </a>
+        <button class="icon-btn cart-trigger" type="button" aria-label="Открыть корзину">
+          <span class="cart-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="presentation">
+              <path d="M17 8V7a5 5 0 10-10 0v1H5.7a1 1 0 00-1 .9L4 18.2A1.8 1.8 0 005.8 20h12.4a1.8 1.8 0 001.8-1.8l-.7-9.3a1 1 0 00-1-.9H17zm-8 0V7a3 3 0 116 0v1H9z"></path>
+            </svg>
+          </span>
+          <span class="badge" id="header-cart-count">0</span>
+        </button>
+        <button class="icon-btn burger" type="button" aria-label="Меню категорий" id="burger-btn">
+          ☰
+        </button>
+        </div>
+      </div>
+    </div>
+    <div class="header__strip">
+      <div class="container header__strip-inner">
+        <p class="header__meta-line">
+          <span class="header__piece"><span class="header__label">Зона</span> город + 15 км</span>
+          <span class="header__sep" aria-hidden="true">·</span>
+          <span class="header__piece"><span class="header__label">Доставка</span> 350 ₽ · бесплатно от 2500 ₽</span>
+          <span class="header__sep" aria-hidden="true">·</span>
+          <span class="header__piece"><span class="header__label">Время</span> 45–70 мин</span>
+        </p>
+        <p class="header__meta-line">
+          <span class="header__piece"><span class="header__label">График</span> Вт–Пт с 11:00 до 22:00, Сб–Вс с 12:00 до 22:00, пн — выходной</span>
+        </p>
+        <p class="header__meta-line header__meta-line--tail">
+          <span class="header__piece">Фуршетные закуски — заказ за 2 дня</span>
+          <span class="header__sep" aria-hidden="true">·</span>
+          <a class="header__meta-link" href="delivery.html">Условия доставки и контакты</a>
+        </p>
+      </div>
+    </div>
+
+  <main>
+    <section class="welcome-banner" aria-label="Приветственный баннер">
+      <div class="welcome-banner__inner">
+        <div class="welcome-banner__content">
+          <img class="welcome-banner__logo" src="assets/banner-logo.png" alt="Карпов Кормит" loading="eager">
+          <p class="welcome-banner__text">ресторанная гастрономия, которую привозят туда, где вы</p>
+          <div class="welcome-banner__actions">
+            <a class="welcome-banner__order-btn" href="#filters">ЗАКАЗАТЬ</a>
+            <a class="welcome-banner__rating-link" href="https://eda.yandex.ru/r/kushat_podano?placeSlug=kushat_podano__vrjpx" target="_blank" rel="noopener noreferrer" aria-label="Открыть страницу в Яндекс Еда">
+              <span>Оценка 5.0 в</span>
+              <span class="welcome-banner__rating-media">
+                <img src="assets/yandex-eda-badge.png" alt="Яндекс Еда" loading="lazy">
+              </span>
+            </a>
+          </div>
+        </div>
+        <img class="welcome-banner__chef" src="assets/banner-chef.png" alt="Шеф-повар Карпов Кормит" loading="eager">
+      </div>
+    </section>
+
+    <section class="menu-panel container" aria-label="Меню ресторана">
+      <div class="menu-panel__top">
+        <div>
+          <h1 class="title">Меню доставки</h1>
+          <p class="subtitle">Готовим под заказ, доставляем быстро, вкус держим на уровне ресторана.</p>
+        </div>
+        <div class="search-box">
+          <label for="search-input" class="visually-hidden">Поиск по названию блюда</label>
+          <input id="search-input" type="search" placeholder="Поиск по названию блюда">
+        </div>
+      </div>
+
+      <nav class="filters" aria-label="Фильтры меню" id="filters"></nav>
+    </section>
+
+    <section class="menu-sections container" id="menu-sections"></section>
+
+    <section class="location-map container" id="delivery-zone" aria-labelledby="location-map-heading">
+      <h2 id="location-map-heading" class="section-title">Точка самовывоза и зона доставки</h2>
+      <div class="location-map__card">
+        <div class="location-map__body">
+          <div class="location-map__text">
+            <p class="location-map__lead">
+              Забрать заказ можно по адресу ниже. Доставляем по Оренбургу и в радиусе до 15 км от города — как в шапке сайта.
+            </p>
+            <ul class="location-map__list">
+              <li><strong>Самовывоз:</strong> г. Оренбург, ул. Донецкая, 2/3 — метка на карте.</li>
+              <li><strong>Доставка:</strong> <strong>350 ₽</strong> по зоне. При заказе от <strong>2500 ₽</strong> — доставка бесплатная.</li>
+              <li><strong>Время в пути:</strong> ориентировочно 45–70 минут.</li>
+            </ul>
+          </div>
+          <div class="location-map__maps" role="group" aria-label="Карты с точкой самовывоза">
+            <div class="location-map__map-block">
+              <p class="location-map__map-label">Яндекс Карты</p>
+              <div class="location-map__frame">
+                <iframe
+                  title="Яндекс Карта — Карпов Кормит, Оренбург, ул. Донецкая 2/3"
+                  src="https://yandex.ru/map-widget/v1/?ll=55.119189%2C51.762235&amp;z=16&amp;l=map&amp;pt=55.119189%2C51.762235%2Cpm2rdm"
+                  loading="lazy"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allowfullscreen
+                ></iframe>
+              </div>
+              <a class="location-map__open" href="https://yandex.ru/maps/?pt=55.119189%2C51.762235&amp;z=17&amp;l=map" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах</a>
+            </div>
+            <div class="location-map__map-block">
+              <p class="location-map__map-label">Google Карты</p>
+              <div class="location-map__frame">
+                <iframe
+                  title="Google Карта — Оренбург, ул. Донецкая 2/3"
+                  src="https://www.google.com/maps?q=51.762235%2C55.119189&amp;z=16&amp;output=embed&amp;hl=ru"
+                  loading="lazy"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allowfullscreen
+                ></iframe>
+              </div>
+              <a class="location-map__open" href="https://www.google.com/maps/search/?api=1&amp;query=51.762235%2C55.119189" target="_blank" rel="noopener noreferrer">Открыть в Google Картах</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="reviews reviews--board" id="reviews" aria-labelledby="reviews-heading">
+      <div class="reviews-board container">
+        <header class="reviews-board__header">
+          <div class="reviews-board__titles">
+            <h2 id="reviews-heading" class="section-title section-title--reviews">Отзывы гостей</h2>
+            <p class="reviews-board__lead">
+              Выдержки из отзывов на <strong>Яндекс Картах</strong> и в <strong>Яндекс Еде</strong>. Полные тексты и актуальная оценка — в профиле заведения на сервисах Яндекса.
+            </p>
+          </div>
+          <div class="reviews-summary" aria-label="Сводка по Яндекс Еде">
+            <div class="reviews-summary__main">
+              <span class="reviews-summary__score">4,9</span>
+              <div class="reviews-summary__stars" aria-hidden="true">★★★★★</div>
+              <p class="reviews-summary__hint">Оценка и число отзывов обновляются на стороне Яндекса</p>
+            </div>
+            <a class="btn btn--secondary reviews-summary__link" href="https://eda.yandex.ru/r/kushat_podano?placeSlug=kushat_podano__vrjpx" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Еде</a>
+          </div>
+        </header>
+
+        <div class="reviews-cta">
+          <p class="reviews-cta__text">Поделитесь впечатлением — это помогает нам расти.</p>
+          <a class="btn btn--primary reviews-cta__btn" href="https://eda.yandex.ru/r/kushat_podano?placeSlug=kushat_podano__vrjpx" target="_blank" rel="noopener noreferrer">Написать отзыв в Яндекс Еде</a>
+          <a class="reviews-cta__secondary" href="https://yandex.ru/maps/?text=%D0%9A%D0%B0%D1%80%D0%BF%D0%BE%D0%B2%20%D0%BA%D0%BE%D1%80%D0%BC%D0%B8%D1%82%20%D0%9E%D1%80%D0%B5%D0%BD%D0%B1%D1%83%D1%80%D0%B3" target="_blank" rel="noopener noreferrer">Яндекс Карты</a>
+        </div>
+
+        <div id="reviews-cards-mount" class="reviews-cards" aria-live="polite"></div>
+
+        <div class="reviews-widget-block" id="reviews-widget-block" hidden>
+          <h3 class="reviews-widget-block__title">Виджет отзывов Яндекс Карт</h3>
+          <p class="reviews-widget-block__lead">Если задан URL iframe в настройках сайта, здесь показывается тот же блок отзывов, что и в карточке организации.</p>
+          <div class="reviews__widget" id="reviews-widget-mount"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__col">
+        <img class="footer__logo" src="assets/footer-logo.png" alt="Карпов кормит">
+        <p>Карпов Юрий Геннадьевич</p>
+        <p>ИНН 560906938408</p>
+      </div>
+      <div class="footer__col">
+        <p><strong>Адрес:</strong> г. Оренбург, ул. Донецкая улица, 2/3</p>
+        <p><strong>Режим работы:</strong> Вт-Пт с 11:00 до 22:00, Сб-Вс с 12:00 до 22:00, Пн - Выходной день</p>
+        <p><strong>Email:</strong> <a href="mailto:Yurakarpov69@mail.ru">Yurakarpov69@mail.ru</a></p>
+        <p><strong>Телефон:</strong> <a href="tel:89619296688">89619296688</a></p>
+      </div>
+      <div class="footer__col">
+        <p class="footer__socials">
+          <a href="https://www.instagram.com/kushat_podano_56?igsh=MWV1cW5lMnhxbzhoZQ==" target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a href="tel:89619296688">Позвонить</a>
+        </p>
+        <ul class="footer__legal">
+          <li><a href="delivery.html">Условия доставки</a></li>
+          <li><a href="privacy.html">Персональные данные</a></li>
+          <li><a href="cookies.html">Файлы cookie</a></li>
+          <li><a href="https://karpovkormit.ru/polzovatelskoe_soglashenie" target="_blank" rel="noopener noreferrer">Пользовательское соглашение</a></li>
+          <li><a href="https://karpovkormit.ru/page108870366.html" target="_blank" rel="noopener noreferrer">Договор публичной оферты</a></li>
+          <li><a href="https://karpovkormit.ru/politika_v_otnoshenii_obrabotki_personalnih_dannih" target="_blank" rel="noopener noreferrer">Политика оператора в отношении персональных данных</a></li>
+          <li><a href="https://karpovkormit.ru/soglasie_na_obrabotku_personalnih_dannih" target="_blank" rel="noopener noreferrer">Согласие на обработку персональных данных</a></li>
+          <li><a href="https://karpovkormit.ru/soglasie_na_poluchenie_informacionnih_i_reklamnih_materialov" target="_blank" rel="noopener noreferrer">Согласие на информационную и рекламную рассылку</a></li>
+        </ul>
+        <p class="footer__copy">© 2026 Карпов кормит</p>
+      </div>
+    </div>
+  </footer>
+  </div>
+
+  <div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Согласие на использование cookie" aria-hidden="true" hidden>
+    <div class="cookie-banner__inner container">
+      <p class="cookie-banner__text">
+        Мы используем файлы cookie и похожие технологии для работы сайта, корзины и оформления заказа.
+        Подробнее — на страницах <a href="cookies.html">файлы cookie</a> и <a href="privacy.html">персональные данные</a>.
+        Оформляя заказ, вы подтверждаете ознакомление с <a href="https://karpovkormit.ru/page108870366.html" target="_blank" rel="noopener noreferrer">договором публичной оферты</a> и <a href="https://karpovkormit.ru/politika_v_otnoshenii_obrabotki_personalnih_dannih" target="_blank" rel="noopener noreferrer">политикой конфиденциальности</a>.
+      </p>
+      <div class="cookie-banner__actions">
+        <button type="button" class="btn btn--primary" id="cookie-accept">Принять</button>
+        <a href="cookies.html" class="btn btn--secondary">Подробнее</a>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" class="scroll-top-btn" id="scroll-top-btn" aria-label="Наверх страницы" title="Наверх">
+    <svg class="scroll-top-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14l-6-6z"></path>
+    </svg>
+  </button>
+
+  <button class="mobile-cart-btn cart-trigger" type="button" aria-label="Открыть корзину">
+    <span class="cart-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" role="presentation">
+        <path d="M17 8V7a5 5 0 10-10 0v1H5.7a1 1 0 00-1 .9L4 18.2A1.8 1.8 0 005.8 20h12.4a1.8 1.8 0 001.8-1.8l-.7-9.3a1 1 0 00-1-.9H17zm-8 0V7a3 3 0 116 0v1H9z"></path>
+      </svg>
+    </span>
+    <span class="badge" id="mobile-cart-count">0</span>
+  </button>
+
+  <aside class="cart" id="cart">
+    <div class="cart__overlay" id="cart-overlay"></div>
+    <div class="cart__panel" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+      <div class="cart__head">
+        <h2 id="cart-title">Ваш заказ</h2>
+        <button type="button" class="icon-btn" id="close-cart" aria-label="Закрыть корзину">✕</button>
+      </div>
+      <div class="cart__items" id="cart-items"></div>
+      <div class="cart__summary">
+        <p>Итого: <strong id="cart-total">0 ₽</strong></p>
+      </div>
+      <form id="checkout-form" class="checkout-form">
+        <label>
+          Фамилия и имя
+          <input name="name" type="text" required autocomplete="name" placeholder="Как к вам обращаться">
+        </label>
+        <label>
+          Номер телефона
+          <input name="phone" id="phone-input" type="tel" required autocomplete="tel" placeholder="+7 (___) ___-__-__">
+        </label>
+        <label>
+          Комментарий к заказу
+          <textarea name="comment" rows="2" placeholder="Пожелания по блюдам, времени, домофону"></textarea>
+        </label>
+
+        <div class="checkout-form__block">
+          <h3 class="checkout-form__heading">Доставка</h3>
+          <label>
+            Время доставки
+            <select name="deliveryTime" required>
+              <option value="">Выберите время</option>
+              <option>Как можно скорее</option>
+              <option>Через 30 минут</option>
+              <option>Через 1 час</option>
+              <option>К 20:00</option>
+            </select>
+          </label>
+          <label>
+            Адрес доставки
+            <input name="address" type="text" required autocomplete="street-address" placeholder="Улица, дом, подъезд, квартира">
+          </label>
+        </div>
+
+        <label class="checkout-form__checkbox">
+          <input type="checkbox" name="rememberContacts" id="remember-contacts" value="1">
+          <span>Запомнить контакты в браузере для следующего заказа</span>
+        </label>
+
+        <div class="checkout-form__promo">
+          <label class="checkout-form__promo-field">
+            Промокод
+            <input name="promoCode" type="text" maxlength="64" placeholder="Если есть" autocomplete="off">
+          </label>
+          <button type="button" class="btn btn--secondary" id="promo-apply">Активировать</button>
+        </div>
+        <p class="checkout-form__promo-hint" id="promo-hint" hidden>Промокод передан вместе с заказом и будет учтён при обработке.</p>
+
+        <p class="checkout-legal">
+          Нажимая «Оформить заказ», вы подтверждаете, что ознакомились с
+          <a href="https://karpovkormit.ru/page108870366.html" target="_blank" rel="noopener noreferrer">договором публичной оферты</a>,
+          <a href="https://karpovkormit.ru/politika_v_otnoshenii_obrabotki_personalnih_dannih" target="_blank" rel="noopener noreferrer">политикой конфиденциальности</a>, даёте
+          <a href="https://karpovkormit.ru/soglasie_na_obrabotku_personalnih_dannih" target="_blank" rel="noopener noreferrer">согласие на обработку персональных данных</a>
+          и <a href="https://karpovkormit.ru/soglasie_na_poluchenie_informacionnih_i_reklamnih_materialov" target="_blank" rel="noopener noreferrer">согласие на информационную рассылку</a>.
+        </p>
+        <button class="btn btn--primary" type="submit">Оформить заказ</button>
+      </form>
+      <div class="cart__quickbar" id="cart-quickbar">
+        <div class="cart__quickbar-total">
+          <span>Итого</span>
+          <strong id="cart-quickbar-total">0 ₽</strong>
+        </div>
+        <button class="btn btn--primary cart__quickbar-btn" type="submit" form="checkout-form">
+          Оформить заказ
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <aside class="dish-modal" id="dish-modal" aria-hidden="true">
+    <div class="dish-modal__overlay" id="dish-modal-overlay"></div>
+    <div class="dish-modal__panel" role="dialog" aria-modal="true" aria-labelledby="dish-modal-title">
+      <div class="dish-modal__head">
+        <h2 id="dish-modal-title">Подробнее о блюде</h2>
+        <button type="button" class="icon-btn" id="dish-modal-close" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="dish-modal__body" id="dish-modal-body"></div>
+    </div>
+  </aside>
+
+  <!-- Виджет отзывов: Яндекс Карты → организация → Поделиться → «Виджет отзывов». Вставьте src iframe сюда: -->
+  <script>
+    window.RESTOBAR_YANDEX_REVIEWS_WIDGET_SRC = "";
+  </script>
+  <script src="cookie-consent.js"></script>
+  <script src="menu-data.js"></script>
+  <script src="reviews-data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

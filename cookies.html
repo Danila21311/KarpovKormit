@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Использование файлов cookie на сайте заказа Карпов Кормит.">
+  <title>Файлы cookie — Карпов Кормит</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="legal-page">
+  <div class="page-shell">
+    <div class="header__bar" role="banner">
+      <div class="container header__inner">
+        <a href="index.html" class="logo" aria-label="Карпов Кормит — на главную">
+          <img class="logo__img" src="assets/logo-main.png" alt="Карпов Кормит">
+        </a>
+        <a class="header__phone" href="tel:89619296688">
+          <span class="header__phone-label">Телефон:</span>
+          <span class="header__phone-value">89619296688</span>
+        </a>
+      </div>
+    </div>
+
+  <main class="legal-main container">
+    <nav class="legal-back"><a href="index.html">← Вернуться к меню</a></nav>
+    <article class="legal-article">
+      <h1 class="legal-title">Файлы cookie и локальное хранилище</h1>
+      <p class="legal-lead">
+        Мы используем минимально необходимый набор технологий, чтобы сайт работал, запоминал согласие на использование cookie и удобно оформлял заказ.
+      </p>
+
+      <section class="legal-section">
+        <h2>Согласие</h2>
+        <p>При первом визите показывается панель согласия. Нажимая «Принять», вы сохраняете выбор в браузере (localStorage, ключ <code class="reviews__code">restobar_cookie_consent</code>). Отказ не блокирует просмотр меню, но для корректной работы формы заказа рекомендуется принять условия или не использовать оформление на сайте.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Сессия и работа сайта</h2>
+        <p>Скрипты сайта загружают меню и отправляют заказ на сервер. Запросы к нашему API могут сопровождаться техническими заголовками браузера. Виджеты сторонних сервисов (например, отзывы Яндекс Карт в iframe) подчиняются политикам соответствующего сервиса.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Связанные документы</h2>
+        <p><a href="privacy.html">Персональные данные</a> ·
+          <a href="https://karpovkormit.ru/politika_v_otnoshenii_obrabotki_personalnih_dannih" target="_blank" rel="noopener noreferrer">Полная политика оператора</a></p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__col">
+        <p><a href="delivery.html">Условия доставки</a> · <a href="privacy.html">Персональные данные</a></p>
+        <p class="footer__copy">© 2026 Карпов кормит</p>
+      </div>
+    </div>
+  </footer>
+  </div>
+
+  <div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Согласие на использование cookie" aria-hidden="true" hidden>
+    <div class="cookie-banner__inner container">
+      <p class="cookie-banner__text">
+        Мы используем файлы cookie и похожие технологии для работы сайта.
+        Подробнее — на страницах <a href="cookies.html">файлы cookie</a> и <a href="privacy.html">персональные данные</a>.
+      </p>
+      <div class="cookie-banner__actions">
+        <button type="button" class="btn btn--primary" id="cookie-accept">Принять</button>
+        <a href="cookies.html" class="btn btn--secondary">Подробнее</a>
+      </div>
+    </div>
+  </div>
+  <script src="cookie-consent.js"></script>
+</body>
+</html>
