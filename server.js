@@ -115,12 +115,18 @@ module.exports = app;
 
 if (require.main === module) {
   app.listen(port, async () => {
+    console.log(`Server listening on port ${port}`);
     try {
       await initDb();
-      console.log(`Server is running on http://localhost:${port}`);
+      console.log("Database initialized.");
     } catch (error) {
-      console.error("Database initialization failed:", error.message);
-      process.exit(1);
+      console.error(
+        "Database initialization failed (HTTP still running):",
+        error.message
+      );
+      console.error(
+        "Check Railway Variables: add Postgres and set DATABASE_URL, or fix SSL/network."
+      );
     }
   });
 }

@@ -33,9 +33,14 @@ function poolOptions() {
   const connectionString = normalizeSupabaseConnectionString(raw);
   const isSupabase =
     raw.includes("supabase.co") || raw.includes("supabase.com");
+  /** Публичные прокси Postgres (Railway и др.) требуют TLS; без ssl node-pg часто падает на подключении. */
+  const needsHostedSsl =
+    isSupabase ||
+    /\.railway\.app\b/i.test(raw) ||
+    /\.rlwy\.net\b/i.test(raw);
   return {
     connectionString,
-    ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
+    ssl: needsHostedSsl ? { rejectUnauthorized: false } : undefined,
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 20000,
@@ -43,6 +48,7 @@ function poolOptions() {
     ...(isSupabase ? { prepareThreshold: 0 } : {})
   };
 }
+
 
 const pool = new Pool(poolOptions());
 
