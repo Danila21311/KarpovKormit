@@ -2220,54 +2220,64 @@ main > .welcome-banner:first-child {
     letter-spacing: 0.06em;
   }
 
+  /* Чип «Яндекс Еда» — те же параметры, что на широком экране: белая «капсула», без просвета баннера */
   .welcome-banner__rating-link {
     display: inline-flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
-    justify-content: center;
-    align-content: center;
-    gap: 6px 12px;
-    width: 100%;
-    max-width: min(320px, 100%);
-    min-height: 44px;
-    height: auto;
-    padding: 10px 14px;
+    justify-content: flex-start;
+    gap: 0;
+    box-sizing: border-box;
+    width: auto;
+    max-width: min(100%, calc(100vw - 24px));
+    height: 46px;
+    min-height: 46px;
+    padding: 0 14px 0 16px;
     border-radius: 999px;
-    border: 1px solid #e6e3df;
+    border: 1px solid #cdbca7;
     background: #ffffff;
     font-size: 13px;
-    line-height: 1.25;
-    box-shadow: 0 2px 12px rgba(38, 28, 20, 0.07);
-    overflow: visible;
+    line-height: 1;
+    box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
+    overflow: hidden;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   .welcome-banner__rating-link:hover {
     background: #ffffff;
   }
 
-  .welcome-banner__rating-link span:first-child {
-    white-space: normal;
+  .welcome-banner__rating-link span:not(.welcome-banner__rating-media) {
+    white-space: nowrap;
   }
 
   .welcome-banner__rating-media {
-    margin-left: 0;
-    width: auto;
-    max-width: min(176px, 54vw);
-    min-height: 28px;
-    height: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 0 0 auto;
+    margin-left: 8px;
+    width: 162px;
+    height: 34px;
+    overflow: hidden;
     background: #ffffff;
-    border-radius: 6px;
+    border-radius: 0;
   }
 
   .welcome-banner__rating-link img {
-    width: min(168px, 52vw);
-    max-width: 100%;
+    display: block;
+    width: 190px;
     height: auto;
-    margin: 0;
-    clip-path: none;
-    object-fit: contain;
+    max-width: none;
+    object-fit: cover;
     object-position: center;
+    margin-left: -16px;
+    margin-top: 8px;
+    clip-path: inset(0 10px 0 0);
+    flex-shrink: 0;
     background-color: #ffffff;
+    transform: translateZ(0);
   }
 
   .welcome-banner__chef {
