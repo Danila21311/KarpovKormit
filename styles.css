@@ -371,6 +371,7 @@ main > .welcome-banner:first-child {
 }
 
 .welcome-banner__rating-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0;
@@ -382,16 +383,36 @@ main > .welcome-banner:first-child {
   text-decoration: none;
   color: #4f433a;
   font-weight: 600;
-  box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
+  box-shadow:
+    0 4px 10px rgba(50, 37, 24, 0.08),
+    inset -5px 0 8px rgba(255, 255, 255, 1);
   overflow: hidden;
+}
+
+/* Перекрывает просвет у правого скругления (артефакт субпикселя) */
+.welcome-banner__rating-link::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  background: #ffffff;
+  border-radius: 0 999px 999px 0;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .welcome-banner__rating-link:hover {
   background-color: #ffffff;
-  box-shadow: 0 6px 14px rgba(50, 37, 24, 0.1);
+  box-shadow:
+    0 6px 14px rgba(50, 37, 24, 0.1),
+    inset -5px 0 8px rgba(255, 255, 255, 1);
 }
 
 .welcome-banner__rating-link span {
+  position: relative;
+  z-index: 1;
   line-height: 1;
   white-space: nowrap;
 }
