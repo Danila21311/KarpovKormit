@@ -2178,50 +2178,57 @@ main > .welcome-banner:first-child {
     margin-top: clamp(18px, 5vw, 26px);
   }
 
-  /* Приветственный баннер 320–767px: как на десктопе — шеф внутри баннера справа */
+  /* Приветственный баннер 320–767px: одна колонка по центру */
   .welcome-banner__inner {
-    display: block;
-    min-height: clamp(360px, 92vw, 410px);
-    padding: 22px max(12px, 4vw) 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 0;
+    padding: clamp(14px, 4vw, 20px) clamp(12px, 4vw, 18px) clamp(18px, 5vw, 26px);
+    border-radius: 0;
+    background: linear-gradient(165deg, #f0ebe4 0%, #e9e2d8 42%, #e3dbd2 100%);
+    border: 0;
+    box-shadow: none;
+    gap: 0;
   }
 
   .welcome-banner__content {
-    align-items: flex-start;
-    text-align: left;
-    margin-inline: 0;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: min(420px, 100%);
+    margin-inline: auto;
+    gap: clamp(8px, 2.5vw, 12px);
+    text-align: center;
   }
 
   .welcome-banner__logo {
-    width: min(300px, calc(100vw - 40px));
-    margin-top: -28px;
-    margin-bottom: -12px;
-    margin-left: -14px;
-    align-self: flex-start;
+    width: min(300px, min(92vw, 100%));
+    margin: 0;
+    align-self: center;
   }
 
   .welcome-banner__text {
     font-size: clamp(0.93rem, 3.2vw, 1.02rem);
     line-height: 1.45;
     max-width: 36ch;
-    margin-inline: 0;
+    margin-inline: auto;
   }
 
   .welcome-banner__actions {
-    margin-top: 14px;
+    margin-top: clamp(6px, 2vw, 12px);
     width: 100%;
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    gap: 12px 14px;
+    gap: 10px;
   }
 
   .welcome-banner__order-btn {
-    width: auto;
-    max-width: none;
-    min-width: 164px;
+    width: 100%;
+    max-width: 280px;
+    min-width: 0;
     height: 44px;
     font-size: 14px;
     letter-spacing: 0.06em;
@@ -2287,37 +2294,23 @@ main > .welcome-banner:first-child {
     transform: translateZ(0);
   }
 
+  /* Шеф: только смягчение картинки (светлее, меньше контраста, мягкая тень) */
   .welcome-banner__chef {
-    position: absolute;
-    right: max(2%, 4px);
-    bottom: 0;
-    width: min(42%, 280px);
-    height: auto;
-    margin: 0;
+    position: static;
+    align-self: center;
+    width: min(248px, 70vw);
+    max-width: 100%;
+    margin: clamp(12px, 3.5vw, 20px) auto 0;
     z-index: 2;
-    opacity: 0.96;
+    opacity: 0.95;
     mix-blend-mode: normal;
-    filter: sepia(0.08) saturate(0.9) contrast(0.96) brightness(1);
+    filter: sepia(0.05) saturate(0.93) contrast(0.9) brightness(1.03);
     border-radius: 0;
     outline: 0;
     background: transparent;
-    box-shadow:
-      -30px 0 34px rgba(223, 212, 196, 0.95),
-      0 8px 14px rgba(67, 53, 42, 0.08);
-    -webkit-mask-image: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0) 0%,
-      #000 15%,
-      #000 86%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    mask-image: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0) 0%,
-      #000 15%,
-      #000 86%,
-      rgba(0, 0, 0, 0) 100%
-    );
+    box-shadow: 0 18px 40px rgba(48, 38, 28, 0.09), 0 6px 18px rgba(48, 38, 28, 0.05);
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .logo__img {
