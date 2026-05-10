@@ -906,6 +906,11 @@ main > .welcome-banner:first-child {
   box-shadow: 0 7px 14px rgba(70, 123, 66, 0.24);
 }
 
+/* На широком экране не участвует в раскладке — только на ≤1024px становится flex-центровщиком */
+.card__qty-slot {
+  display: contents;
+}
+
 .card__qty-controls {
   padding: 3px;
   min-height: 36px;
@@ -958,17 +963,21 @@ main > .welcome-banner:first-child {
     justify-self: stretch;
   }
 
-  .card__actions .card__qty-controls {
+  /* Обёртка на всю ширину ряда — сам степпер внутри узкий (иначе grid тянет фон капсулы) */
+  .card__qty-slot {
     grid-column: 1 / -1;
-    place-self: center;
-    /* Без max-content grid растягивает ячейку — пустой фон справа, контролы слева */
-    width: max-content;
-    max-width: min(260px, 100%);
-    min-width: 0;
-    margin-inline: auto;
-    box-sizing: border-box;
-    display: inline-flex;
+    display: flex;
     justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .card__qty-slot .card__qty-controls {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+    margin-inline: 0;
   }
 }
 
@@ -2112,6 +2121,14 @@ main > .welcome-banner:first-child {
   gap: 10px;
 }
 
+.dish-modal__qty-slot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
 .dish-modal__qty {
   flex-shrink: 0;
 }
@@ -2129,10 +2146,14 @@ main > .welcome-banner:first-child {
     gap: 10px;
   }
 
+  .dish-modal__qty-slot {
+    flex: 0 0 auto;
+  }
+
   .dish-modal__qty {
     flex-shrink: 0;
     width: auto;
-    max-width: none;
+    max-width: 100%;
   }
 
   .dish-modal__actions .btn--primary {
@@ -2197,10 +2218,6 @@ main > .welcome-banner:first-child {
 
   .filters {
     margin-top: clamp(18px, 5vw, 26px);
-  }
-
-  .card__actions .card__qty-controls {
-    max-width: min(212px, 100%);
   }
 
   /* Приветственный баннер 320–767px: одна колонка по центру */

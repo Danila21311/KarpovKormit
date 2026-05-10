@@ -159,10 +159,12 @@ function createCard(item) {
                   <span>Добавлено</span>
                 </button>`
               : inCartQty > 0
-              ? `<div class="qty-controls card__qty-controls">
-                  <button type="button" data-card-minus="${item.id}" aria-label="Уменьшить количество">−</button>
-                  <span>${inCartQty}</span>
-                  <button type="button" data-card-plus="${item.id}" aria-label="Увеличить количество">+</button>
+              ? `<div class="card__qty-slot">
+                  <div class="qty-controls card__qty-controls">
+                    <button type="button" data-card-minus="${item.id}" aria-label="Уменьшить количество">−</button>
+                    <span>${inCartQty}</span>
+                    <button type="button" data-card-plus="${item.id}" aria-label="Увеличить количество">+</button>
+                  </div>
                 </div>`
               : `<button class="btn btn--cart" data-add="${item.id}" type="button">
                   <span class="btn__icon" aria-hidden="true">
@@ -204,10 +206,12 @@ function openDishDetails(id) {
     <p class="dish-modal__description">${dish.tastyDescription || makeTastyDescription(dish)}</p>
     <p class="dish-modal__price">${formatPrice(dish.price)}</p>
     <div class="dish-modal__actions">
-      <div class="qty-controls dish-modal__qty">
-        <button type="button" data-details-qty-minus aria-label="Уменьшить количество">−</button>
-        <span id="dish-details-qty">1</span>
-        <button type="button" data-details-qty-plus aria-label="Увеличить количество">+</button>
+      <div class="dish-modal__qty-slot">
+        <div class="qty-controls dish-modal__qty">
+          <button type="button" data-details-qty-minus aria-label="Уменьшить количество">−</button>
+          <span id="dish-details-qty">1</span>
+          <button type="button" data-details-qty-plus aria-label="Увеличить количество">+</button>
+        </div>
       </div>
       <button class="btn btn--primary" type="button" data-details-add="${dish.id}">
         Добавить в корзину
