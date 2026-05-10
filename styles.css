@@ -432,26 +432,89 @@ main > .welcome-banner:first-child {
   }
 }
 
-@media (max-width: 1024px) {
+/* Планшеты и узкие окна: баннер в колонку, без наложения шефа на текст */
+@media (max-width: 1023px) {
   .welcome-banner__inner {
-    min-height: 390px;
-    padding-top: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    padding: 18px 14px 12px;
+    border-radius: 0;
+    background: linear-gradient(115deg, #ece6dc 0%, #e6dfd3 55%, #e3dccf 100%);
+    border: 0;
+    box-shadow: none;
   }
 
   .welcome-banner__content {
-    width: min(58%, 520px);
+    width: 100%;
+    max-width: none;
+    gap: 8px;
   }
 
   .welcome-banner__logo {
-    width: min(390px, 100%);
-    margin-top: -34px;
-    margin-bottom: -14px;
-    margin-left: -18px;
+    width: min(340px, 92vw);
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: -8px;
+    align-self: flex-start;
+  }
+
+  .welcome-banner__text {
+    font-size: clamp(0.95rem, 2.8vw, 1.05rem);
+  }
+
+  .welcome-banner__actions {
+    margin-top: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .welcome-banner__order-btn {
+    width: 100%;
+    max-width: 320px;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .welcome-banner__rating-link {
+    width: 100%;
+    max-width: 360px;
+    min-height: 44px;
+    height: auto;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .welcome-banner__rating-link span:first-child {
+    white-space: normal;
+  }
+
+  .welcome-banner__rating-media {
+    margin-left: 0;
+    width: min(162px, 46vw);
+    height: auto;
+    min-height: 30px;
+  }
+
+  .welcome-banner__rating-link img {
+    width: min(190px, 48vw);
+    margin-left: 0;
+    margin-top: 4px;
+    clip-path: none;
   }
 
   .welcome-banner__chef {
-    right: 8%;
-    width: min(41%, 330px);
+    position: static;
+    align-self: flex-end;
+    width: min(280px, 72vw);
+    max-width: 100%;
+    margin: 8px -6px 0 auto;
+    box-shadow: 0 12px 28px rgba(67, 53, 42, 0.12);
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 }
 
@@ -2086,23 +2149,11 @@ main > .welcome-banner:first-child {
   }
 
   .welcome-banner__inner {
-    min-height: 0;
-    padding: 16px 14px 10px;
-    border-radius: 0;
-    background: linear-gradient(115deg, #ece6dc 0%, #e6dfd3 55%, #e3dccf 100%);
-    border: 0;
-    box-shadow: none;
-  }
-
-  .welcome-banner__content {
-    width: 100%;
-    gap: 8px;
+    padding: 14px 12px 10px;
   }
 
   .welcome-banner__logo {
-    width: min(320px, 100%);
-    margin-top: 0;
-    margin-bottom: 0;
+    width: min(300px, 88vw);
     margin-left: -10px;
   }
 
@@ -2110,41 +2161,86 @@ main > .welcome-banner:first-child {
     font-size: 0.98rem;
   }
 
-  .welcome-banner__actions {
-    margin-top: 12px;
-    gap: 8px;
-  }
-
   .welcome-banner__order-btn {
-    min-width: 138px;
-    height: 40px;
+    height: 42px;
     font-size: 14px;
-  }
-
-  .welcome-banner__rating-link img {
-    width: 160px;
-    height: auto;
-    margin-left: -13px;
-    margin-top: 5px;
-    clip-path: inset(0 8px 0 0);
-  }
-
-  .welcome-banner__rating-media {
-    width: 134px;
-    height: 30px;
-    margin-left: 6px;
+    max-width: none;
   }
 
   .welcome-banner__rating-link {
-    height: 42px;
     font-size: 13px;
-    padding: 0 10px 0 12px;
+    padding: 8px 10px;
+    max-width: 100%;
+  }
+
+  .welcome-banner__rating-link img {
+    width: min(160px, 42vw);
+  }
+
+  .welcome-banner__rating-media {
+    width: min(134px, 38vw);
   }
 
   .welcome-banner__chef {
-    position: static;
-    width: min(74%, 260px);
-    margin-left: auto;
+    width: min(240px, 68vw);
+    margin-top: 6px;
+  }
+
+  .filters {
+    top: calc(72px + env(safe-area-inset-top, 0px));
+    padding-inline: 8px;
+  }
+
+  .card__image {
+    height: 168px;
+  }
+
+  .card__foot {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 2px;
+  }
+
+  .card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: stretch;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .card__actions .btn--secondary {
+    flex: 1 1 calc(50% - 4px);
+    min-width: min(100%, 132px);
+    justify-content: center;
+  }
+
+  .card__actions .btn--cart {
+    flex: 1 1 calc(50% - 4px);
+    min-width: min(100%, 132px);
+    justify-content: center;
+  }
+
+  .card__actions .card__qty-controls {
+    flex: 1 1 100%;
+    justify-content: center;
+    width: 100%;
+    order: 3;
+    box-sizing: border-box;
+  }
+
+  .dish-modal__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .dish-modal__actions .btn--primary {
+    min-width: 0;
+    width: 100%;
   }
 
   .logo__img {
@@ -2195,5 +2291,12 @@ main > .welcome-banner:first-child {
 
   .cart__quickbar-btn {
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
