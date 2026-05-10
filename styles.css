@@ -947,7 +947,7 @@ main > .welcome-banner:first-child {
     width: 100%;
     min-width: 0;
     justify-content: stretch;
-    align-items: stretch;
+    align-items: center;
   }
 
   .card__actions .btn--secondary,
@@ -963,11 +963,10 @@ main > .welcome-banner:first-child {
     justify-self: stretch;
   }
 
-  /* Обёртка на всю ширину ряда — сам степпер внутри узкий (иначе grid тянет фон капсулы) */
+  /* Вторая колонка рядом с «Подробнее»; сам степпер узкий внутри слота */
   .card__qty-slot {
-    grid-column: 1 / -1;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     width: 100%;
     min-width: 0;
@@ -996,6 +995,10 @@ main > .welcome-banner:first-child {
   .card__actions .btn--secondary,
   .card__actions .btn--cart {
     width: 100%;
+    justify-content: center;
+  }
+
+  .card__qty-slot {
     justify-content: center;
   }
 }
