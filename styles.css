@@ -2164,6 +2164,20 @@ main > .welcome-banner:first-child {
     margin-top: 0;
   }
 
+  .menu-panel {
+    padding: 18px 0 14px;
+  }
+
+  .menu-panel__top {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .filters {
+    margin-top: clamp(18px, 5vw, 26px);
+  }
+
   /* Приветственный баннер 320–767px: одна колонка по центру */
   .welcome-banner__inner {
     display: flex;
