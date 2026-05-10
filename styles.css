@@ -8,15 +8,6 @@
   --line: #e7ddd1;
   --shadow: 0 10px 30px rgba(25, 18, 12, 0.08);
   --shadow-soft: 0 3px 12px rgba(24, 17, 12, 0.06);
-  /* Герой-баннер: единые отступы и шаги на всех ширинах */
-  --hero-pad-inline: clamp(12px, 4.5vw, 40px);
-  --hero-pad-top: clamp(14px, 3.6vw, 28px);
-  --hero-pad-bottom: clamp(10px, 2.4vw, 16px);
-  --hero-stack-gap: clamp(8px, 2.2vw, 14px);
-  /* Чип «Яндекс Еда»: без бежевой рамки — только белый + лёгкая нейтральная кромка */
-  --rating-pill-bg: #ffffff;
-  --rating-pill-border: #e8e6e3;
-  --rating-pill-shadow: 0 2px 14px rgba(28, 22, 16, 0.07);
 }
 
 *,
@@ -38,7 +29,7 @@ body {
 }
 
 .container {
-  width: min(1200px, calc(100% - 2 * var(--hero-pad-inline)));
+  width: min(1200px, 100% - 24px);
   margin-inline: auto;
 }
 
@@ -311,7 +302,7 @@ main > .welcome-banner:first-child {
   width: min(52%, 620px);
   display: flex;
   flex-direction: column;
-  gap: var(--hero-stack-gap);
+  gap: 10px;
 }
 
 .welcome-banner__logo {
@@ -332,11 +323,11 @@ main > .welcome-banner:first-child {
 }
 
 .welcome-banner__actions {
-  margin-top: clamp(12px, 2.8vw, 18px);
+  margin-top: 18px;
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 14px);
-  align-items: stretch;
+  gap: 12px 14px;
+  align-items: center;
 }
 
 .welcome-banner__order-btn {
@@ -367,14 +358,13 @@ main > .welcome-banner:first-child {
 .welcome-banner__rating-link img {
   display: block;
   width: 190px;
-  max-width: 100%;
   height: auto;
-  object-fit: contain;
-  object-position: left center;
-  background-color: var(--rating-pill-bg);
+  object-fit: cover;
+  object-position: center;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: auto;
-  margin: 0;
+  margin-left: -16px;
+  margin-top: 8px;
   clip-path: inset(0 10px 0 0);
   flex-shrink: 0;
   transform: none;
@@ -383,29 +373,25 @@ main > .welcome-banner:first-child {
 .welcome-banner__rating-link {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
-  gap: 8px 10px;
-  min-height: 46px;
-  padding: 10px 14px;
+  gap: 0;
+  height: 46px;
+  padding: 0 14px 0 16px;
   border-radius: 999px;
-  border: 1px solid var(--rating-pill-border);
-  background-color: var(--rating-pill-bg);
-  background-clip: padding-box;
+  border: 1px solid #cdbca7;
+  background: rgba(255, 255, 255, 0.96);
   text-decoration: none;
   color: #4f433a;
   font-weight: 600;
-  box-shadow: var(--rating-pill-shadow);
+  box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
   overflow: hidden;
-  isolation: isolate;
 }
 
 .welcome-banner__rating-link:hover {
-  background-color: var(--rating-pill-bg);
-  border-color: var(--rating-pill-border);
+  background: rgba(255, 255, 255, 0.98);
 }
 
 .welcome-banner__rating-link span {
-  line-height: 1.25;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -413,14 +399,12 @@ main > .welcome-banner:first-child {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  flex: 1 1 auto;
-  min-width: 0;
-  margin-left: 0;
-  max-width: min(190px, 52vw);
-  min-height: 32px;
+  margin-left: 8px;
+  width: 162px;
+  height: 34px;
   overflow: hidden;
-  background-color: var(--rating-pill-bg);
-  border-radius: 6px;
+  background: #fff;
+  border-radius: 0;
 }
 
 .welcome-banner__chef {
@@ -448,128 +432,26 @@ main > .welcome-banner:first-child {
   }
 }
 
-/* Планшеты и узкие окна: колонка, без наложения шефа; отступы только через clamp */
-@media (max-width: 1023px) {
+@media (max-width: 1024px) {
   .welcome-banner__inner {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    min-height: 0;
-    padding: var(--hero-pad-top) var(--hero-pad-inline) var(--hero-pad-bottom);
-    border-radius: 0;
-    background: linear-gradient(115deg, #ece6dc 0%, #e6dfd3 55%, #e3dccf 100%);
-    border: 0;
-    box-shadow: none;
+    min-height: 390px;
+    padding-top: 22px;
   }
 
   .welcome-banner__content {
-    width: 100%;
-    max-width: min(520px, 100%);
-    margin-inline: 0;
-    gap: var(--hero-stack-gap);
+    width: min(58%, 520px);
   }
 
   .welcome-banner__logo {
-    width: min(340px, calc(100vw - 2 * var(--hero-pad-inline)));
-    margin: 0;
-    align-self: flex-start;
-  }
-
-  .welcome-banner__text {
-    font-size: clamp(0.92rem, calc(0.35rem + 2.5vw), 1.06rem);
-    max-width: 42ch;
-  }
-
-  .welcome-banner__actions {
-    margin-top: clamp(10px, 2.5vw, 14px);
-    flex-direction: column;
-    align-items: stretch;
-    gap: clamp(8px, 2vw, 11px);
-    width: 100%;
-    max-width: min(360px, 100%);
-  }
-
-  .welcome-banner__order-btn {
-    width: 100%;
-    max-width: none;
-    min-width: 0;
-    justify-content: center;
-  }
-
-  .welcome-banner__rating-link {
-    width: 100%;
-    max-width: none;
-    min-height: 44px;
-    height: auto;
-    padding: 10px 14px;
-    flex-wrap: wrap;
-    align-items: center;
-    row-gap: 6px;
-    column-gap: 10px;
-    background-color: var(--rating-pill-bg);
-    border-color: var(--rating-pill-border);
-    box-shadow: var(--rating-pill-shadow);
-  }
-
-  .welcome-banner__rating-link span:first-child {
-    white-space: normal;
-    flex: 1 1 8em;
-    min-width: 0;
-  }
-
-  .welcome-banner__rating-media {
-    flex: 1 1 140px;
-    max-width: min(200px, 70vw);
-    min-height: 30px;
-    margin-left: 0;
-    background-color: var(--rating-pill-bg);
-  }
-
-  .welcome-banner__rating-link img {
-    width: min(190px, 58vw);
-    max-width: 100%;
-    margin: 0;
-    clip-path: none;
-    background-color: var(--rating-pill-bg);
+    width: min(390px, 100%);
+    margin-top: -34px;
+    margin-bottom: -14px;
+    margin-left: -18px;
   }
 
   .welcome-banner__chef {
-    position: static;
-    align-self: center;
-    width: min(280px, min(82vw, 100%));
-    max-width: 100%;
-    margin: clamp(10px, 2.5vw, 14px) auto 0;
-    box-shadow: 0 12px 28px rgba(67, 53, 42, 0.12);
-    mask-image: none;
-    -webkit-mask-image: none;
-  }
-}
-
-/* Очень узко: чип рейтинга в одну колонку — без «обoda» фона баннера */
-@media (max-width: 420px) {
-  .welcome-banner__rating-link {
-    flex-direction: column;
-    align-items: flex-start;
-    align-self: stretch;
-    border-radius: 16px;
-    padding: 12px 14px;
-    row-gap: 8px;
-  }
-
-  .welcome-banner__rating-link span:first-child {
-    flex: none;
-    white-space: normal;
-  }
-
-  .welcome-banner__rating-media {
-    flex: none;
-    width: 100%;
-    max-width: 240px;
-    min-height: 34px;
-  }
-
-  .welcome-banner__rating-link img {
-    width: min(200px, 85%);
+    right: 8%;
+    width: min(41%, 330px);
   }
 }
 
@@ -2203,71 +2085,66 @@ main > .welcome-banner:first-child {
     margin-top: 0;
   }
 
+  .welcome-banner__inner {
+    min-height: 0;
+    padding: 16px 14px 10px;
+    border-radius: 0;
+    background: linear-gradient(115deg, #ece6dc 0%, #e6dfd3 55%, #e3dccf 100%);
+    border: 0;
+    box-shadow: none;
+  }
+
+  .welcome-banner__content {
+    width: 100%;
+    gap: 8px;
+  }
+
   .welcome-banner__logo {
-    width: min(300px, calc(100vw - 2 * var(--hero-pad-inline)));
-    margin-left: max(-8px, calc(-1 * var(--hero-pad-inline) + 4px));
+    width: min(320px, 100%);
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: -10px;
+  }
+
+  .welcome-banner__text {
+    font-size: 0.98rem;
+  }
+
+  .welcome-banner__actions {
+    margin-top: 12px;
+    gap: 8px;
   }
 
   .welcome-banner__order-btn {
-    min-height: 42px;
-    font-size: clamp(13px, 3.6vw, 15px);
+    min-width: 138px;
+    height: 40px;
+    font-size: 14px;
   }
 
-  .filters {
-    top: calc(72px + env(safe-area-inset-top, 0px));
-    padding-inline: 8px;
+  .welcome-banner__rating-link img {
+    width: 160px;
+    height: auto;
+    margin-left: -13px;
+    margin-top: 5px;
+    clip-path: inset(0 8px 0 0);
   }
 
-  .card__image {
-    height: 168px;
+  .welcome-banner__rating-media {
+    width: 134px;
+    height: 30px;
+    margin-left: 6px;
   }
 
-  .card__foot {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    margin-top: 2px;
+  .welcome-banner__rating-link {
+    height: 42px;
+    font-size: 13px;
+    padding: 0 10px 0 12px;
   }
 
-  .card__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: stretch;
-    gap: 8px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .card__actions .btn--secondary {
-    flex: 1 1 calc(50% - 4px);
-    min-width: min(100%, 132px);
-    justify-content: center;
-  }
-
-  .card__actions .btn--cart {
-    flex: 1 1 calc(50% - 4px);
-    min-width: min(100%, 132px);
-    justify-content: center;
-  }
-
-  .card__actions .card__qty-controls {
-    flex: 1 1 100%;
-    justify-content: center;
-    width: 100%;
-    order: 3;
-    box-sizing: border-box;
-  }
-
-  .dish-modal__actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .dish-modal__actions .btn--primary {
-    min-width: 0;
-    width: 100%;
+  .welcome-banner__chef {
+    position: static;
+    width: min(74%, 260px);
+    margin-left: auto;
   }
 
   .logo__img {
@@ -2318,12 +2195,5 @@ main > .welcome-banner:first-child {
 
   .cart__quickbar-btn {
     white-space: nowrap;
-  }
-}
-
-@media (max-width: 640px) {
-  .cards-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
   }
 }
