@@ -927,7 +927,7 @@ main > .welcome-banner:first-child {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 6px;
+    gap: 10px;
     margin-top: auto;
   }
 
@@ -942,8 +942,7 @@ main > .welcome-banner:first-child {
     width: 100%;
     min-width: 0;
     justify-content: stretch;
-    align-items: center;
-    margin-top: -2px;
+    align-items: stretch;
   }
 
   .card__actions .btn--secondary,
@@ -959,13 +958,12 @@ main > .welcome-banner:first-child {
     justify-self: stretch;
   }
 
-  /* Степпер в одной строке с «Подробнее», справа — как «В корзину» */
   .card__actions .card__qty-controls {
-    justify-self: end;
-    align-self: center;
+    grid-column: 1 / -1;
+    justify-self: center;
     width: fit-content;
-    max-width: 100%;
-    margin-inline: 0;
+    max-width: min(240px, 100%);
+    margin-inline: auto;
     box-sizing: border-box;
   }
 }
@@ -986,13 +984,6 @@ main > .welcome-banner:first-child {
   .card__actions .btn--cart {
     width: 100%;
     justify-content: center;
-  }
-
-  .card__actions .card__qty-controls {
-    justify-self: center;
-    width: 100%;
-    max-width: 280px;
-    margin-inline: auto;
   }
 }
 
@@ -2127,20 +2118,23 @@ main > .welcome-banner:first-child {
 
 @media (max-width: 767px) {
   .dish-modal__actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
   }
 
   .dish-modal__qty {
-    align-self: center;
+    flex-shrink: 0;
     width: auto;
-    max-width: 100%;
+    max-width: none;
   }
 
   .dish-modal__actions .btn--primary {
     min-width: 0;
-    width: 100%;
+    flex: 1 1 0;
+    width: auto;
   }
 }
 
