@@ -860,6 +860,38 @@ main > .welcome-banner:first-child {
   flex-shrink: 0;
 }
 
+/* Десктоп: слегка компактнее кнопки и немного правее блок действий */
+@media (min-width: 1025px) {
+  .card__foot {
+    gap: 10px;
+  }
+
+  .card__actions {
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .card__actions .btn--secondary {
+    padding: 8px 11px;
+    min-height: 34px;
+    font-size: 12px;
+  }
+
+  .card__actions .btn--cart,
+  .card__actions .btn--cart-added {
+    padding: 7px 10px;
+    min-height: 34px;
+    font-size: 12px;
+    gap: 5px;
+  }
+
+  .card__actions .btn--cart .btn__icon,
+  .card__actions .btn--cart .btn__icon svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .btn--cart {
   border: 1px solid #b95a3a;
   background: linear-gradient(135deg, #cf6a44 0%, #b95033 100%);
