@@ -375,7 +375,7 @@ main > .welcome-banner:first-child {
   display: inline-grid;
   grid-template-columns: auto 162px;
   align-items: center;
-  column-gap: 8px;
+  column-gap: 12px;
   height: 46px;
   padding: 0 14px 0 16px;
   border-radius: 999px;
@@ -386,18 +386,16 @@ main > .welcome-banner:first-child {
   font-weight: 600;
   box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
   overflow: hidden;
+  isolation: isolate;
 }
 
-/* Подмазка у правой дуги (антиалиасинг / зазор до padding) */
-.welcome-banner__rating-link::after {
+/* Сплошная белая подложка под контент — без полоски у скругления */
+.welcome-banner__rating-link::before {
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 22px;
+  inset: 0;
+  border-radius: inherit;
   background: #ffffff;
-  border-radius: 0 999px 999px 0;
   pointer-events: none;
   z-index: 0;
 }
@@ -2244,12 +2242,12 @@ main > .welcome-banner:first-child {
     letter-spacing: 0.06em;
   }
 
-  /* Чип «Яндекс Еда»: колонка лого на всю ширину до скругления — без щели справа от «Еда» */
+  /* Чип «Яндекс Еда»: больше воздуха между текстом и лого; колонка лого на 1fr */
   .welcome-banner__rating-link {
     display: grid;
     grid-template-columns: auto minmax(162px, 1fr);
     align-items: center;
-    column-gap: 8px;
+    column-gap: 16px;
     box-sizing: border-box;
     width: 100%;
     max-width: min(100%, calc(100vw - 24px));
@@ -2280,6 +2278,7 @@ main > .welcome-banner:first-child {
     width: 100%;
     min-width: 0;
     height: 34px;
+    padding-left: 4px;
     overflow: hidden;
     background-color: #ffffff;
     border-radius: 0;
@@ -2292,7 +2291,7 @@ main > .welcome-banner:first-child {
     max-width: none;
     object-fit: cover;
     object-position: center;
-    margin-left: -16px;
+    margin-left: -6px;
     margin-top: 8px;
     clip-path: inset(0 10px 0 0);
     flex-shrink: 0;
