@@ -2294,7 +2294,7 @@ main > .welcome-banner:first-child {
     transform: translateZ(0);
   }
 
-  /* Шеф: только смягчение картинки (светлее, меньше контраста, мягкая тень) */
+  /* Шеф: смягчение картинки + размытие краёв (как виньетка по периметру; на десктопе — только по X) */
   .welcome-banner__chef {
     position: static;
     align-self: center;
@@ -2309,8 +2309,28 @@ main > .welcome-banner:first-child {
     outline: 0;
     background: transparent;
     box-shadow: 0 18px 40px rgba(48, 38, 28, 0.09), 0 6px 18px rgba(48, 38, 28, 0.05);
-    -webkit-mask-image: none;
-    mask-image: none;
+    -webkit-mask-image: radial-gradient(
+      ellipse 96% 94% at 50% 42%,
+      #000 0%,
+      #000 48%,
+      rgba(0, 0, 0, 0.92) 68%,
+      rgba(0, 0, 0, 0.35) 88%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    mask-image: radial-gradient(
+      ellipse 96% 94% at 50% 42%,
+      #000 0%,
+      #000 48%,
+      rgba(0, 0, 0, 0.92) 68%,
+      rgba(0, 0, 0, 0.35) 88%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
   }
 
   .logo__img {
