@@ -377,24 +377,18 @@ main > .welcome-banner:first-child {
   height: 46px;
   padding: 0 14px 0 16px;
   border-radius: 999px;
-  border: 0;
+  border: 1px solid #cdbca7;
   background-color: #ffffff;
   text-decoration: none;
   color: #4f433a;
   font-weight: 600;
-  /* Кольцо через box-shadow вместо border — убирает субпиксельную щель у скругления */
-  box-shadow:
-    0 0 0 1px #cdbca7,
-    0 4px 10px rgba(50, 37, 24, 0.08);
+  box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
   overflow: hidden;
-  isolation: isolate;
 }
 
 .welcome-banner__rating-link:hover {
   background-color: #ffffff;
-  box-shadow:
-    0 0 0 1px #cdbca7,
-    0 6px 14px rgba(50, 37, 24, 0.1);
+  box-shadow: 0 6px 14px rgba(50, 37, 24, 0.1);
 }
 
 .welcome-banner__rating-link span {
@@ -407,14 +401,11 @@ main > .welcome-banner:first-child {
   align-items: center;
   justify-content: flex-start;
   margin-left: 8px;
-  margin-right: -2px;
-  padding-right: 2px;
   width: 162px;
   height: 34px;
   overflow: hidden;
   background-color: #ffffff;
   border-radius: 0;
-  box-sizing: content-box;
 }
 
 .welcome-banner__chef {
@@ -2244,24 +2235,19 @@ main > .welcome-banner:first-child {
     min-height: 46px;
     padding: 0 14px 0 16px;
     border-radius: 999px;
-    border: 0;
+    border: 1px solid #cdbca7;
     background-color: #ffffff;
     font-size: 13px;
     line-height: 1;
-    box-shadow:
-      0 0 0 1px #cdbca7,
-      0 4px 10px rgba(50, 37, 24, 0.08);
+    box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
     overflow: hidden;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    isolation: isolate;
   }
 
   .welcome-banner__rating-link:hover {
     background-color: #ffffff;
-    box-shadow:
-      0 0 0 1px #cdbca7,
-      0 6px 14px rgba(50, 37, 24, 0.1);
+    box-shadow: 0 6px 14px rgba(50, 37, 24, 0.1);
   }
 
   .welcome-banner__rating-link span:not(.welcome-banner__rating-media) {
@@ -2274,14 +2260,11 @@ main > .welcome-banner:first-child {
     justify-content: flex-start;
     flex: 0 0 auto;
     margin-left: 8px;
-    margin-right: -2px;
-    padding-right: 2px;
     width: 162px;
     height: 34px;
     overflow: hidden;
     background-color: #ffffff;
     border-radius: 0;
-    box-sizing: content-box;
   }
 
   .welcome-banner__rating-link img {
