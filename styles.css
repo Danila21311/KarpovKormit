@@ -371,61 +371,39 @@ main > .welcome-banner:first-child {
 }
 
 .welcome-banner__rating-link {
-  position: relative;
-  display: inline-grid;
-  grid-template-columns: auto 162px;
+  display: inline-flex;
   align-items: center;
-  column-gap: 12px;
+  gap: 0;
   height: 46px;
   padding: 0 14px 0 16px;
   border-radius: 999px;
   border: 1px solid #cdbca7;
-  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
   text-decoration: none;
   color: #4f433a;
   font-weight: 600;
   box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
   overflow: hidden;
-  isolation: isolate;
-}
-
-/* Сплошная белая подложка под контент — без полоски у скругления */
-.welcome-banner__rating-link::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: #ffffff;
-  pointer-events: none;
-  z-index: 0;
 }
 
 .welcome-banner__rating-link:hover {
-  background-color: #ffffff;
-  box-shadow: 0 6px 14px rgba(50, 37, 24, 0.1);
+  background: rgba(255, 255, 255, 0.98);
 }
 
-.welcome-banner__rating-link > span {
-  position: relative;
-  z-index: 1;
+.welcome-banner__rating-link span {
   line-height: 1;
-}
-
-.welcome-banner__rating-link > span:first-of-type {
   white-space: nowrap;
 }
 
 .welcome-banner__rating-media {
-  position: relative;
-  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  justify-self: stretch;
-  width: 100%;
+  margin-left: 8px;
+  width: 162px;
   height: 34px;
   overflow: hidden;
-  background-color: #ffffff;
+  background: #fff;
   border-radius: 0;
 }
 
@@ -2242,89 +2220,64 @@ main > .welcome-banner:first-child {
     letter-spacing: 0.06em;
   }
 
-  /* Яндекс Еда — отдельная «дорогая» карточка: колонка, без обрезки лого и без щелей скругления */
-  .welcome-banner__rating-link::before {
-    display: none;
-  }
-
+  /* Чип «Яндекс Еда» — те же параметры, что на широком экране: белая «капсула», без просвета баннера */
   .welcome-banner__rating-link {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
     box-sizing: border-box;
-    width: 100%;
-    max-width: min(320px, calc(100vw - 24px));
-    height: auto;
-    min-height: 0;
-    padding: 14px 16px 16px;
-    border-radius: 18px;
-    border: 1px solid rgba(216, 206, 192, 0.95);
-    background: linear-gradient(165deg, #ffffff 0%, #faf8f5 55%, #f5f1eb 100%);
-    color: #3a3531;
+    width: auto;
+    max-width: min(100%, calc(100vw - 24px));
+    height: 46px;
+    min-height: 46px;
+    padding: 0 14px 0 16px;
+    border-radius: 999px;
+    border: 1px solid #cdbca7;
+    background: #ffffff;
     font-size: 13px;
-    line-height: 1.35;
-    box-shadow:
-      0 12px 32px rgba(38, 28, 18, 0.09),
-      0 1px 0 rgba(255, 255, 255, 0.85) inset;
-    overflow: visible;
-    isolation: auto;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease,
-      border-color 0.2s ease;
+    line-height: 1;
+    box-shadow: 0 4px 10px rgba(50, 37, 24, 0.08);
+    overflow: hidden;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    -webkit-tap-highlight-color: transparent;
   }
 
   .welcome-banner__rating-link:hover {
-    transform: translateY(-2px);
-    border-color: rgba(200, 182, 162, 0.95);
-    background: linear-gradient(165deg, #ffffff 0%, #fcfbf9 50%, #f7f3ed 100%);
-    box-shadow:
-      0 16px 36px rgba(38, 28, 18, 0.11),
-      0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    background: #ffffff;
   }
 
-  .welcome-banner__rating-link > span:first-of-type {
-    white-space: normal;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: #5c544c;
-    line-height: 1.4;
+  .welcome-banner__rating-link span:not(.welcome-banner__rating-media) {
+    white-space: nowrap;
   }
 
   .welcome-banner__rating-media {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    padding: 12px 14px;
-    margin: 0;
-    overflow: visible;
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 14px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 2px 12px rgba(35, 26, 18, 0.05);
+    justify-content: flex-start;
+    flex: 0 0 auto;
+    margin-left: 8px;
+    width: 162px;
+    height: 34px;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 0;
   }
 
   .welcome-banner__rating-link img {
     display: block;
-    width: 100%;
-    max-width: 220px;
+    width: 190px;
     height: auto;
-    margin: 0 auto;
-    clip-path: none;
-    object-fit: contain;
+    max-width: none;
+    object-fit: cover;
     object-position: center;
+    margin-left: -16px;
+    margin-top: 8px;
+    clip-path: inset(0 10px 0 0);
     flex-shrink: 0;
-    background-color: transparent;
-    transform: none;
+    background-color: #ffffff;
+    transform: translateZ(0);
   }
 
   .welcome-banner__chef {
