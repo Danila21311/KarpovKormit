@@ -850,10 +850,14 @@ main > .welcome-banner:first-child {
   font-size: 13px;
 }
 
-.card__actions .btn--cart {
-  min-width: 0;
+.card__actions .btn--cart,
+.card__actions .btn--cart-added {
+  min-width: min-content;
   padding: 8px 12px;
   font-size: 13px;
+  white-space: nowrap;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .btn--cart {
@@ -950,8 +954,7 @@ main > .welcome-banner:first-child {
     align-items: center;
   }
 
-  .card__actions .btn--secondary,
-  .card__actions .btn--cart {
+  .card__actions .btn--secondary {
     min-width: 0;
     width: auto;
     max-width: none;
@@ -961,6 +964,23 @@ main > .welcome-banner:first-child {
     font-size: 12px;
     line-height: 1.2;
     justify-self: stretch;
+  }
+
+  /* Иконка + текст не должны сжиматься сильнее коробки (иначе вылезают за скругления) */
+  .card__actions .btn--cart,
+  .card__actions .btn--cart-added {
+    min-width: min-content;
+    width: auto;
+    max-width: 100%;
+    white-space: nowrap;
+    text-align: center;
+    padding-inline: 12px;
+    padding-block: 8px;
+    font-size: 12px;
+    line-height: 1.25;
+    justify-self: stretch;
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
 
   /* Вторая колонка рядом с «Подробнее»; сам степпер узкий внутри слота */
@@ -994,13 +1014,24 @@ main > .welcome-banner:first-child {
     align-items: center;
   }
 
-  .card__actions .btn--secondary,
-  .card__actions .btn--cart {
+  .card__actions .btn--secondary {
     width: auto;
     max-width: 100%;
     min-width: 0;
     justify-self: start;
     justify-content: center;
+  }
+
+  .card__actions .btn--cart,
+  .card__actions .btn--cart-added {
+    width: auto;
+    max-width: 100%;
+    min-width: min-content;
+    justify-self: end;
+    justify-content: center;
+    padding-inline: 12px;
+    white-space: nowrap;
+    box-sizing: border-box;
   }
 
   .card__qty-slot {
