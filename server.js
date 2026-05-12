@@ -3,7 +3,22 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 
-const { initDb, createOrderWithItems, updateOrderIntegration, addIntegrationLog } = require("./src/db");
+const {
+  initDb,
+  createOrderWithItems,
+  updateOrderIntegration,
+  addIntegrationLog,
+  getPublicMenuData,
+  getAdminMenuData,
+  createSection,
+  updateSection,
+  deleteSection,
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+  getDeliveryContent,
+  updateDeliveryContent
+} = require("./src/db");
 const { validateOrderPayload } = require("./src/validate-order");
 const { sendOrderToIiko } = require("./src/iiko-client");
 const { loadMenuItems } = require("./src/menu-loader");
@@ -24,10 +39,128 @@ app.get("/api/health", async (req, res) => {
 
 app.get("/api/menu", async (req, res) => {
   try {
-    const items = await loadMenuItems(path.join(__dirname, "menu-data.js"));
-    res.json({ ok: true, items });
+    const data = await getPublicMenuData();
+    res.json({ ok: true, ...data });
   } catch (error) {
-    res.status(500).json({ ok: false, message: "Failed to load menu." });
+    try {
+      const fallbackItems = await loadMenuItems(path.join(__dirname, "menu-data.js"));
+      const sectionNames = [...new Set(fallbackItems.map((item) => item.category).filter(Boolean))];
+      const sections = sectionNames.map((name, index) => ({ id: index + 1, name, sortOrder: index }));
+      res.json({ ok: true, sections, items: fallbackItems });
+    } catch (fallbackError) {
+      res.status(500).json({ ok: false, message: "Failed to load menu." });
+    }
+  }
+});
+
+app.get("/api/delivery-content", async (req, res) => {
+  try {
+    const content = await getDeliveryContent();
+    res.json({ ok: true, ...content });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to load delivery content." });
+  }
+});
+
+function extractAdminToken(req) {
+  const bearer = String(req.headers.authorization || "");
+  if (bearer.toLowerCase().startsWith("bearer ")) {
+    return bearer.slice(7).trim();
+  }
+  return String(req.headers["x-admin-token"] || "").trim();
+}
+
+function requireAdmin(req, res, next) {
+  const expected = String(process.env.ADMIN_TOKEN || "").trim();
+  if (!expected) {
+    return res.status(503).json({ ok: false, message: "ADMIN_TOKEN is not configured on server." });
+  }
+  const actual = extractAdminToken(req);
+  if (!actual || actual !== expected) {
+    return res.status(401).json({ ok: false, message: "Admin authorization failed." });
+  }
+  return next();
+}
+
+app.get("/api/admin/menu", requireAdmin, async (req, res) => {
+  try {
+    const data = await getAdminMenuData();
+    res.json({ ok: true, ...data });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to load admin menu data." });
+  }
+});
+
+app.post("/api/admin/sections", requireAdmin, async (req, res) => {
+  try {
+    const section = await createSection(req.body || {});
+    res.status(201).json({ ok: true, section });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Failed to create section." });
+  }
+});
+
+app.patch("/api/admin/sections/:id", requireAdmin, async (req, res) => {
+  try {
+    const section = await updateSection(req.params.id, req.body || {});
+    res.json({ ok: true, section });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Failed to update section." });
+  }
+});
+
+app.delete("/api/admin/sections/:id", requireAdmin, async (req, res) => {
+  try {
+    await deleteSection(req.params.id);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Failed to delete section." });
+  }
+});
+
+app.post("/api/admin/items", requireAdmin, async (req, res) => {
+  try {
+    const itemId = await createMenuItem(req.body || {});
+    res.status(201).json({ ok: true, itemId });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Failed to create item." });
+  }
+});
+
+app.patch("/api/admin/items/:id", requireAdmin, async (req, res) => {
+  try {
+    await updateMenuItem(req.params.id, req.body || {});
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Failed to update item." });
+  }
+});
+
+app.delete("/api/admin/items/:id", requireAdmin, async (req, res) => {
+  try {
+    await deleteMenuItem(req.params.id);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Failed to delete item." });
+  }
+});
+
+app.get("/api/admin/delivery-content", requireAdmin, async (req, res) => {
+  try {
+    const content = await getDeliveryContent();
+    res.json({ ok: true, ...content });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to load delivery content." });
+  }
+});
+
+app.put("/api/admin/delivery-content", requireAdmin, async (req, res) => {
+  try {
+    await updateDeliveryContent(req.body?.contentHtml);
+    const updated = await getDeliveryContent();
+    res.json({ ok: true, ...updated });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Failed to update delivery content." });
   }
 });
 

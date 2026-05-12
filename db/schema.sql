@@ -34,3 +34,39 @@ CREATE TABLE IF NOT EXISTS integration_logs (
   response_payload JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS menu_sections (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS menu_items (
+  id BIGINT PRIMARY KEY,
+  section_id BIGINT REFERENCES menu_sections(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  weight TEXT,
+  description TEXT NOT NULL DEFAULT '',
+  tasty_description TEXT,
+  price INTEGER NOT NULL CHECK (price >= 0),
+  image TEXT NOT NULL DEFAULT '',
+  tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+  is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
+  is_stop_list BOOLEAN NOT NULL DEFAULT FALSE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_menu_items_section_id ON menu_items(section_id);
+CREATE INDEX IF NOT EXISTS idx_menu_items_visible ON menu_items(is_hidden, is_stop_list);
+
+CREATE TABLE IF NOT EXISTS delivery_content (
+  id SMALLINT PRIMARY KEY,
+  content_html TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (id = 1)
+);

@@ -1,19 +1,5 @@
-const categories = [
-  "Салаты и закуски",
-  "Супы",
-  "Горячее",
-  "Мангал",
-  "Гарниры",
-  "Комба блюда",
-  "Пицца и хачапури",
-  "Десерты",
-  "Меню фуршетных закусок",
-  "Отзывы"
-];
-
-if (typeof menuItems === "undefined" || !Array.isArray(menuItems) || menuItems.length === 0) {
-  throw new Error("menuItems is missing. Ensure menu-data.js is loaded before script.js");
-}
+let categories = [];
+let menuItems = [];
 
 /** Профиль на Яндекс Еде и поиск карточки на Яндекс Картах. */
 const RESTOBAR_YANDEX_EDA_URL =
@@ -22,7 +8,7 @@ const RESTOBAR_YANDEX_MAPS_SEARCH_URL =
   "https://yandex.ru/maps/?text=%D0%9A%D0%B0%D1%80%D0%BF%D0%BE%D0%B2%20%D0%BA%D0%BE%D1%80%D0%BC%D0%B8%D1%82%20%D0%9E%D1%80%D0%B5%D0%BD%D0%B1%D1%83%D1%80%D0%B3";
 
 const appState = {
-  activeCategory: categories[0],
+  activeCategory: "",
   search: "",
   cart: {},
   justAdded: {}
@@ -47,6 +33,59 @@ let detailsQty = 1;
 const justAddedTimers = {};
 let sectionObserver = null;
 let cardRevealObserver = null;
+
+function normalizeMenuPayload(payload) {
+  const sections = Array.isArray(payload?.sections) ? payload.sections : [];
+  const items = Array.isArray(payload?.items) ? payload.items : [];
+  const sectionNames = sections
+    .map((section) => String(section?.name || "").trim())
+    .filter(Boolean);
+  const fallbackNames = [...new Set(items.map((item) => String(item?.category || "").trim()).filter(Boolean))];
+  categories = [...new Set([...(sectionNames.length ? sectionNames : fallbackNames), "Отзывы"])];
+  menuItems = items.map((item) => ({
+    id: Number(item.id),
+    category: String(item.category || "").trim(),
+    name: String(item.name || "").trim(),
+    weight: String(item.weight || "—"),
+    description: String(item.description || "").trim(),
+    tastyDescription: String(item.tastyDescription || "").trim(),
+    price: Math.max(0, Number(item.price) || 0),
+    image: String(item.image || "").trim(),
+    tags: Array.isArray(item.tags) ? item.tags : [],
+    isStopList: Boolean(item.isStopList)
+  }));
+}
+
+async function loadMenuData() {
+  const fallbackFromStatic = () => {
+    const staticItems = Array.isArray(window.menuItems) ? window.menuItems : [];
+    if (!staticItems.length) {
+      throw new Error("Не удалось загрузить меню ни из API, ни из локального файла.");
+    }
+    const sectionNames = [...new Set(staticItems.map((item) => String(item.category || "").trim()).filter(Boolean))];
+    const sections = sectionNames.map((name, index) => ({ id: index + 1, name, sortOrder: index }));
+    normalizeMenuPayload({ sections, items: staticItems });
+  };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 7000);
+  try {
+    const response = await fetch("/api/menu", {
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error("menu api response is not ok");
+    const data = await response.json();
+    if (!data?.ok || !Array.isArray(data.items) || data.items.length === 0) {
+      throw new Error("menu api payload is empty");
+    }
+    normalizeMenuPayload(data);
+  } catch (_) {
+    fallbackFromStatic();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 function slugify(value) {
   return value.toLowerCase().replace(/[^а-яa-z0-9]+/gi, "-").replace(/(^-|-$)/g, "");
@@ -153,7 +192,11 @@ function createCard(item) {
         <div class="card__actions">
           <button class="btn btn--secondary" data-details="${item.id}" type="button">Подробнее</button>
           ${
-            isJustAdded
+            item.isStopList
+              ? `<button class="btn btn--cart" type="button" disabled title="Блюдо временно недоступно">
+                  <span>Стоп-лист</span>
+                </button>`
+              : isJustAdded
               ? `<button class="btn btn--cart btn--cart-added" type="button" disabled>
                   <span class="btn__icon">✓</span>
                   <span>Добавлено</span>
@@ -199,6 +242,7 @@ function openDishDetails(id) {
   detailsQty = 1;
   const metaParts = [dish.category];
   if (dish.weight && dish.weight !== "—") metaParts.push(dish.weight);
+  const canOrder = !dish.isStopList;
   detailsBodyEl.innerHTML = `
     <img class="dish-modal__image" src="${dish.image}" alt="${dish.name}" loading="lazy">
     <div class="dish-modal__meta">${metaParts.join(" · ")}</div>
@@ -208,14 +252,18 @@ function openDishDetails(id) {
     <div class="dish-modal__actions">
       <div class="dish-modal__qty-slot">
         <div class="qty-controls dish-modal__qty">
-          <button type="button" data-details-qty-minus aria-label="Уменьшить количество">−</button>
+          <button type="button" data-details-qty-minus aria-label="Уменьшить количество" ${canOrder ? "" : "disabled"}>−</button>
           <span id="dish-details-qty">1</span>
-          <button type="button" data-details-qty-plus aria-label="Увеличить количество">+</button>
+          <button type="button" data-details-qty-plus aria-label="Увеличить количество" ${canOrder ? "" : "disabled"}>+</button>
         </div>
       </div>
-      <button class="btn btn--primary" type="button" data-details-add="${dish.id}">
+      ${
+        canOrder
+          ? `<button class="btn btn--primary" type="button" data-details-add="${dish.id}">
         Добавить в корзину
-      </button>
+      </button>`
+          : `<button class="btn btn--secondary" type="button" disabled>В стоп-листе</button>`
+      }
     </div>
   `;
   detailsModalEl.classList.add("is-open");
@@ -512,7 +560,7 @@ function renderCart() {
 
 function addToCart(id, qty = 1) {
   const menuItem = menuItems.find((item) => item.id === Number(id));
-  if (!menuItem) return;
+  if (!menuItem || menuItem.isStopList) return;
   if (!appState.cart[id]) {
     appState.cart[id] = { ...menuItem, qty: 0 };
   }
@@ -781,7 +829,15 @@ function initEvents() {
   }
 }
 
-function init() {
+async function init() {
+  try {
+    await loadMenuData();
+  } catch (error) {
+    console.error(error);
+    alert("Не удалось загрузить меню. Обновите страницу чуть позже.");
+    return;
+  }
+  appState.activeCategory = getFirstMenuCategory() || categories[0] || "";
   renderFilters();
   renderMenuSections();
   setupReviewsSection();

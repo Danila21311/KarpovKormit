@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ-панель — Карпов Кормит</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container" style="padding:24px 0 40px;">
+    <h1 style="margin:0 0 12px;">Админ-панель</h1>
+    <p style="margin:0 0 18px;color:var(--muted);">Управление секциями, блюдами, стоп-листом и страницей условий доставки.</p>
+
+    <section style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:#fff;">
+      <h2 style="margin:0 0 8px;font-size:18px;">Авторизация</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input id="admin-token-input" type="password" placeholder="ADMIN_TOKEN" style="min-width:280px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;">
+        <button id="admin-token-save" class="btn btn--primary" type="button">Войти</button>
+        <button id="admin-token-clear" class="btn btn--secondary" type="button">Выйти</button>
+        <button id="admin-reload" class="btn btn--secondary" type="button">Обновить данные</button>
+      </div>
+      <p id="admin-status" style="margin:8px 0 0;color:var(--muted);">Токен не задан.</p>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:#fff;">
+      <h2 style="margin:0 0 8px;font-size:18px;">Секции меню</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <input id="new-section-name" type="text" placeholder="Новая секция (например, Выпечка)" style="min-width:280px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;">
+        <button id="add-section" class="btn btn--primary" type="button">Добавить секцию</button>
+      </div>
+      <p style="margin:0 0 8px;color:var(--muted);">Секции можно перетаскивать мышью за любую область строки.</p>
+      <div id="sections-list" style="display:grid;gap:8px;"></div>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:#fff;">
+      <h2 style="margin:0 0 8px;font-size:18px;">Добавить блюдо</h2>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:8px;">
+        <input id="new-item-name" type="text" placeholder="Название блюда">
+        <select id="new-item-section"></select>
+        <input id="new-item-price" type="number" min="0" placeholder="Цена">
+        <input id="new-item-weight" type="text" placeholder="Вес (например, 250 г)">
+        <input id="new-item-image" type="url" placeholder="URL картинки">
+        <input id="new-item-tags" type="text" placeholder="Теги через запятую">
+      </div>
+      <textarea id="new-item-description" rows="3" placeholder="Описание" style="margin-top:8px;width:100%;"></textarea>
+      <textarea id="new-item-tasty" rows="3" placeholder="Расширенное описание (опционально)" style="margin-top:8px;width:100%;"></textarea>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+        <label><input id="new-item-hidden" type="checkbox"> Скрыть для пользователей</label>
+        <label><input id="new-item-stop" type="checkbox"> Добавить в стоп-лист</label>
+        <button id="add-item" class="btn btn--primary" type="button">Создать блюдо</button>
+      </div>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:#fff;">
+      <h2 style="margin:0 0 8px;font-size:18px;">Блюда</h2>
+      <p style="margin:0 0 8px;color:var(--muted);">Измените поля и нажмите «Сохранить» у нужной строки. Карточки можно перетаскивать для сортировки.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+        <input id="items-search" type="search" placeholder="Поиск по названию, описанию, тегам" style="min-width:260px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;">
+        <select id="items-section-filter" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;">
+          <option value="">Все секции</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--muted);">
+          На странице
+          <select id="items-page-size" style="padding:6px 8px;border:1px solid var(--line);border-radius:8px;">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+        <button id="items-prev-page" class="btn btn--secondary" type="button">←</button>
+        <span id="items-page-info" style="min-width:90px;text-align:center;color:var(--muted);">1 / 1</span>
+        <button id="items-next-page" class="btn btn--secondary" type="button">→</button>
+        <span id="items-total-info" style="margin-left:auto;color:var(--muted);">0 блюд</span>
+      </div>
+      <div id="items-list" style="display:grid;gap:10px;"></div>
+    </section>
+
+    <section style="border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;">
+      <h2 style="margin:0 0 8px;font-size:18px;">Контент страницы «Условия доставки»</h2>
+      <p style="margin:0 0 8px;color:var(--muted);">Редактируется HTML внутри блока статьи на странице доставки.</p>
+      <textarea id="delivery-html" rows="16" style="width:100%;font-family:monospace;"></textarea>
+      <div style="margin-top:8px;">
+        <button id="save-delivery" class="btn btn--primary" type="button">Сохранить страницу доставки</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
