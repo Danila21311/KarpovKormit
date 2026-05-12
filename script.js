@@ -171,6 +171,7 @@ function createCard(item) {
   card.className = "card";
   const hasWeight = item.weight && item.weight !== "—";
   const safeDescription = item.description || "Описание скоро появится.";
+  const cardTitle = String(item.name || "").replace(/(\d+)\s+г\b/gi, "$1\u00A0г");
   const inCartQty = appState.cart[item.id]?.qty || 0;
   const isJustAdded = Boolean(appState.justAdded[item.id]);
   const tagClassMap = {
@@ -182,7 +183,7 @@ function createCard(item) {
   card.innerHTML = `
     <img class="card__image" src="${item.image}" alt="${item.name}" loading="lazy">
     <div class="card__body">
-      <strong>${item.name}</strong>
+      <strong>${cardTitle}</strong>
       ${hasWeight ? `<span class="card__meta">${item.weight}</span>` : ""}
       <p class="card__desc">${safeDescription}</p>
       <div class="tags">

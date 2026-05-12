@@ -7,7 +7,19 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="container" style="padding:24px 0 40px;">
+  <div id="admin-gate" style="position:fixed;inset:0;z-index:1000;background:rgba(16,15,14,0.55);display:flex;align-items:center;justify-content:center;padding:16px;">
+    <div style="width:min(460px,100%);background:#fff;border-radius:14px;border:1px solid var(--line);box-shadow:0 18px 42px rgba(0,0,0,0.2);padding:16px;">
+      <h2 style="margin:0 0 8px;font-size:20px;">Вход в админ-панель</h2>
+      <p style="margin:0 0 10px;color:var(--muted);">Введите ADMIN_TOKEN для доступа к управлению сайтом.</p>
+      <input id="admin-gate-token-input" type="password" placeholder="ADMIN_TOKEN" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;">
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+        <button id="admin-gate-enter" class="btn btn--primary" type="button">Войти</button>
+      </div>
+      <p id="admin-gate-status" style="margin:8px 0 0;color:#b2452f;min-height:18px;"></p>
+    </div>
+  </div>
+
+  <main id="admin-app" class="container" style="padding:24px 0 40px;display:none;">
     <h1 style="margin:0 0 12px;">Админ-панель</h1>
     <p style="margin:0 0 18px;color:var(--muted);">Управление секциями, блюдами, стоп-листом и страницей условий доставки.</p>
 

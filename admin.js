@@ -1,4 +1,9 @@
 const tokenInput = document.getElementById("admin-token-input");
+const gateEl = document.getElementById("admin-gate");
+const gateTokenInputEl = document.getElementById("admin-gate-token-input");
+const gateEnterBtnEl = document.getElementById("admin-gate-enter");
+const gateStatusEl = document.getElementById("admin-gate-status");
+const adminAppEl = document.getElementById("admin-app");
 const statusEl = document.getElementById("admin-status");
 const sectionsListEl = document.getElementById("sections-list");
 const itemsListEl = document.getElementById("items-list");
@@ -19,6 +24,7 @@ let items = [];
 let currentPage = 1;
 let dragSectionId = null;
 let dragItemId = null;
+let isAuthorized = false;
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -46,6 +52,21 @@ async function api(path, options = {}) {
     throw new Error(data?.message || "Ошибка запроса.");
   }
   return data;
+}
+
+async function verifyAdminToken(token) {
+  const candidate = String(token || "").trim();
+  if (!candidate) throw new Error("Введите токен.");
+  const response = await fetch("/api/admin/menu", {
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-token": candidate
+    }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data?.ok) throw new Error(data?.message || "Неверный токен.");
+  adminToken = candidate;
+  localStorage.setItem(STORAGE_KEY, adminToken);
 }
 
 function parseTags(value) {
@@ -206,9 +227,10 @@ async function reloadAll() {
 }
 
 document.getElementById("admin-token-save").addEventListener("click", async () => {
-  adminToken = tokenInput.value.trim();
-  localStorage.setItem(STORAGE_KEY, adminToken);
   try {
+    await verifyAdminToken(tokenInput.value);
+    tokenInput.value = adminToken;
+    gateTokenInputEl.value = adminToken;
     currentPage = 1;
     await reloadAll();
     setStatus("Токен принят, данные загружены.");
@@ -219,8 +241,12 @@ document.getElementById("admin-token-save").addEventListener("click", async () =
 
 document.getElementById("admin-token-clear").addEventListener("click", () => {
   adminToken = "";
+  isAuthorized = false;
   tokenInput.value = "";
+  gateTokenInputEl.value = "";
   localStorage.removeItem(STORAGE_KEY);
+  if (adminAppEl) adminAppEl.style.display = "none";
+  if (gateEl) gateEl.style.display = "flex";
   setStatus("Токен очищен.");
 });
 
@@ -453,8 +479,41 @@ document.getElementById("save-delivery").addEventListener("click", async () => {
 });
 
 if (adminToken) {
-  tokenInput.value = adminToken;
-  reloadAll()
-    .then(() => setStatus("Токен из браузера применён, данные загружены."))
-    .catch((error) => setStatus(error.message, true));
+  gateTokenInputEl.value = adminToken;
+}
+
+async function enterAdminPanel(token) {
+  gateStatusEl.textContent = "";
+  gateEnterBtnEl.disabled = true;
+  try {
+    await verifyAdminToken(token);
+    isAuthorized = true;
+    tokenInput.value = adminToken;
+    gateTokenInputEl.value = adminToken;
+    if (gateEl) gateEl.style.display = "none";
+    if (adminAppEl) adminAppEl.style.display = "block";
+    currentPage = 1;
+    await reloadAll();
+    setStatus("Токен принят, данные загружены.");
+  } catch (error) {
+    gateStatusEl.textContent = error.message || "Не удалось войти.";
+    setStatus(error.message || "Не удалось войти.", true);
+  } finally {
+    gateEnterBtnEl.disabled = false;
+  }
+}
+
+gateEnterBtnEl.addEventListener("click", () => {
+  enterAdminPanel(gateTokenInputEl.value);
+});
+
+gateTokenInputEl.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    enterAdminPanel(gateTokenInputEl.value);
+  }
+});
+
+if (adminToken) {
+  enterAdminPanel(adminToken);
 }
