@@ -1,5 +1,5 @@
 let categories = [];
-let menuItems = [];
+let menuCatalogItems = [];
 
 /** Профиль на Яндекс Еде и поиск карточки на Яндекс Картах. */
 const RESTOBAR_YANDEX_EDA_URL =
@@ -42,7 +42,7 @@ function normalizeMenuPayload(payload) {
     .filter(Boolean);
   const fallbackNames = [...new Set(items.map((item) => String(item?.category || "").trim()).filter(Boolean))];
   categories = [...new Set([...(sectionNames.length ? sectionNames : fallbackNames), "Отзывы"])];
-  menuItems = items.map((item) => ({
+  menuCatalogItems = items.map((item) => ({
     id: Number(item.id),
     category: String(item.category || "").trim(),
     name: String(item.name || "").trim(),
@@ -58,7 +58,8 @@ function normalizeMenuPayload(payload) {
 
 async function loadMenuData() {
   const fallbackFromStatic = () => {
-    const staticItems = Array.isArray(window.menuItems) ? window.menuItems : [];
+    const staticItems =
+      typeof menuItems !== "undefined" && Array.isArray(menuItems) ? menuItems : [];
     if (!staticItems.length) {
       throw new Error("Не удалось загрузить меню ни из API, ни из локального файла.");
     }
@@ -135,7 +136,7 @@ function makeTastyDescription(dish) {
 }
 
 function getFilteredItems(category) {
-  return menuItems.filter((item) => {
+  return menuCatalogItems.filter((item) => {
     const byCategory = item.category === category;
     const bySearch = item.name.toLowerCase().includes(appState.search.toLowerCase());
     return byCategory && bySearch;
@@ -237,7 +238,7 @@ function markDishAdded(id) {
 }
 
 function openDishDetails(id) {
-  const dish = menuItems.find((item) => item.id === Number(id));
+  const dish = menuCatalogItems.find((item) => item.id === Number(id));
   if (!dish || !detailsModalEl || !detailsBodyEl) return;
   detailsQty = 1;
   const metaParts = [dish.category];
@@ -559,7 +560,7 @@ function renderCart() {
 }
 
 function addToCart(id, qty = 1) {
-  const menuItem = menuItems.find((item) => item.id === Number(id));
+  const menuItem = menuCatalogItems.find((item) => item.id === Number(id));
   if (!menuItem || menuItem.isStopList) return;
   if (!appState.cart[id]) {
     appState.cart[id] = { ...menuItem, qty: 0 };
