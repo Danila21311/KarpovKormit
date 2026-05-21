@@ -30,6 +30,8 @@ const cartTriggerEl = document.querySelector(".header .cart-trigger");
 const detailsModalEl = document.getElementById("dish-modal");
 const detailsBodyEl = document.getElementById("dish-modal-body");
 let detailsQty = 1;
+let detailsSelected = {};
+let detailsDishId = null;
 const justAddedTimers = {};
 let sectionObserver = null;
 let cardRevealObserver = null;
@@ -52,8 +54,112 @@ function normalizeMenuPayload(payload) {
     price: Math.max(0, Number(item.price) || 0),
     image: String(item.image || "").trim(),
     tags: Array.isArray(item.tags) ? item.tags : [],
+    modifierGroups: resolveModifierGroups(item),
     isStopList: Boolean(item.isStopList)
   }));
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function resolveModifierGroups(item) {
+  const fromApi = Array.isArray(item.modifierGroups)
+    ? item.modifierGroups
+    : Array.isArray(item.modifiers)
+      ? item.modifiers
+      : [];
+  if (fromApi.length) return normalizeModifierGroups(fromApi);
+  if (typeof getMenuModifiersForItem === "function") {
+    return normalizeModifierGroups(getMenuModifiersForItem(String(item.name || "")));
+  }
+  return [];
+}
+
+function normalizeModifierGroups(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((group) => ({
+      id: String(group?.id || "").trim(),
+      title: String(group?.title || "").trim(),
+      min: Math.max(0, Number(group?.min) || 0),
+      max: Math.max(0, Number(group?.max) || 0),
+      options: Array.isArray(group?.options)
+        ? group.options
+            .map((option) => ({
+              id: String(option?.id || "").trim(),
+              name: String(option?.name || "").trim(),
+              price: Math.max(0, Math.round(Number(option?.price) || 0))
+            }))
+            .filter((option) => option.id && option.name)
+        : []
+    }))
+    .filter((group) => group.id && group.title && group.options.length);
+}
+
+function dishHasModifiers(dish) {
+  return Boolean(dish && Array.isArray(dish.modifierGroups) && dish.modifierGroups.length > 0);
+}
+
+function getCartQtyForMenuItem(menuItemId) {
+  return Object.values(appState.cart)
+    .filter((line) => Number(line.id) === Number(menuItemId))
+    .reduce((sum, line) => sum + line.qty, 0);
+}
+
+function buildCartLineKey(menuItemId, modifiers) {
+  if (!modifiers.length) return String(menuItemId);
+  const part = modifiers
+    .map((modifier) => modifier.id)
+    .sort()
+    .join("|");
+  return `${menuItemId}__${part}`;
+}
+
+function getModifiersFromSelection(dish, selected) {
+  const picked = [];
+  for (const group of dish.modifierGroups || []) {
+    const ids = selected[group.id] || [];
+    for (const optionId of ids) {
+      const option = group.options.find((entry) => entry.id === optionId);
+      if (option) {
+        picked.push({
+          id: option.id,
+          name: option.name,
+          price: option.price,
+          groupId: group.id,
+          groupTitle: group.title
+        });
+      }
+    }
+  }
+  return picked;
+}
+
+function validateModifierSelection(dish, selected) {
+  for (const group of dish.modifierGroups || []) {
+    const count = (selected[group.id] || []).length;
+    if (count < group.min) {
+      return `В разделе «${group.title}» выберите минимум ${group.min}.`;
+    }
+    if (group.max > 0 && count > group.max) {
+      return `В разделе «${group.title}» можно выбрать не больше ${group.max}.`;
+    }
+  }
+  return "";
+}
+
+function formatOrderItemName(baseName, modifiers) {
+  if (!modifiers.length) return baseName;
+  return `${baseName} (${modifiers.map((modifier) => modifier.name).join(", ")})`;
+}
+
+function calcLineUnitPrice(basePrice, modifiers) {
+  return basePrice + modifiers.reduce((sum, modifier) => sum + modifier.price, 0);
 }
 
 async function loadMenuData() {
@@ -172,7 +278,8 @@ function createCard(item) {
   const hasWeight = item.weight && item.weight !== "—";
   const safeDescription = item.description || "Описание скоро появится.";
   const cardTitle = String(item.name || "").replace(/(\d+)\s+г\b/gi, "$1\u00A0г");
-  const inCartQty = appState.cart[item.id]?.qty || 0;
+  const inCartQty = getCartQtyForMenuItem(item.id);
+  const hasModifiers = dishHasModifiers(item);
   const isJustAdded = Boolean(appState.justAdded[item.id]);
   const tagClassMap = {
     "Хит": "tag--hit",
@@ -202,6 +309,15 @@ function createCard(item) {
               ? `<button class="btn btn--cart btn--cart-added" type="button" disabled>
                   <span class="btn__icon">✓</span>
                   <span>Добавлено</span>
+                </button>`
+              : hasModifiers
+              ? `<button class="btn btn--cart" data-add="${item.id}" type="button">
+                  <span class="btn__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <path d="M17 8V7a5 5 0 10-10 0v1H5.7a1 1 0 00-1 .9L4 18.2A1.8 1.8 0 005.8 20h12.4a1.8 1.8 0 001.8-1.8l-.7-9.3a1 1 0 00-1-.9H17zm-8 0V7a3 3 0 116 0v1H9z"></path>
+                    </svg>
+                  </span>
+                  <span>${inCartQty > 0 ? `Выбрать (${inCartQty})` : "Выбрать"}</span>
                 </button>`
               : inCartQty > 0
               ? `<div class="card__qty-slot">
@@ -238,19 +354,106 @@ function markDishAdded(id) {
   }, 1100);
 }
 
+function renderModifierGroupsHtml(dish) {
+  if (!dishHasModifiers(dish)) return "";
+  return dish.modifierGroups
+    .map((group) => {
+      const hint =
+        group.max > 0
+          ? group.min > 0
+            ? `Выберите ${group.min}–${group.max}`
+            : `Выберите до ${group.max}`
+          : "";
+      const optionsHtml = group.options
+        .map(
+          (option) => `
+        <li>
+          <label class="dish-modal__modifier-option">
+            <input
+              type="checkbox"
+              data-modifier-group="${escapeHtml(group.id)}"
+              data-modifier-option="${escapeHtml(option.id)}"
+            >
+            <span class="dish-modal__modifier-option-name">${escapeHtml(option.name)}</span>
+            <span class="dish-modal__modifier-option-price">+ ${formatPrice(option.price)}</span>
+          </label>
+        </li>`
+        )
+        .join("");
+      return `
+      <section class="dish-modal__modifier-group" data-modifier-group-wrap="${escapeHtml(group.id)}">
+        <div class="dish-modal__modifier-head">
+          <h4 class="dish-modal__modifier-title">${escapeHtml(group.title)}</h4>
+          ${hint ? `<span class="dish-modal__modifier-hint">${hint}</span>` : ""}
+        </div>
+        <ul class="dish-modal__modifier-list">${optionsHtml}</ul>
+      </section>`;
+    })
+    .join("");
+}
+
+function updateDetailsPrice(dish) {
+  const mods = getModifiersFromSelection(dish, detailsSelected);
+  const priceEl = document.getElementById("dish-details-price");
+  if (priceEl) priceEl.textContent = formatPrice(calcLineUnitPrice(dish.price, mods));
+}
+
+function bindModifierControls(dish) {
+  if (!detailsBodyEl || !dishHasModifiers(dish)) return;
+  detailsBodyEl.querySelectorAll("[data-modifier-option]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const groupId = input.getAttribute("data-modifier-group");
+      const optionId = input.getAttribute("data-modifier-option");
+      const group = dish.modifierGroups.find((entry) => entry.id === groupId);
+      if (!group || !optionId) return;
+
+      if (!detailsSelected[groupId]) detailsSelected[groupId] = [];
+
+      if (input.checked) {
+        if (group.max === 1) {
+          detailsSelected[groupId] = [optionId];
+          detailsBodyEl.querySelectorAll(`[data-modifier-group="${groupId}"]`).forEach((el) => {
+            if (el !== input) el.checked = false;
+          });
+          input.checked = true;
+        } else if (group.max > 0 && detailsSelected[groupId].length >= group.max) {
+          input.checked = false;
+          return;
+        } else if (!detailsSelected[groupId].includes(optionId)) {
+          detailsSelected[groupId].push(optionId);
+        }
+      } else {
+        detailsSelected[groupId] = detailsSelected[groupId].filter((id) => id !== optionId);
+      }
+
+      updateDetailsPrice(dish);
+    });
+  });
+}
+
 function openDishDetails(id) {
   const dish = menuCatalogItems.find((item) => item.id === Number(id));
   if (!dish || !detailsModalEl || !detailsBodyEl) return;
   detailsQty = 1;
+  detailsDishId = dish.id;
+  detailsSelected = {};
+  for (const group of dish.modifierGroups || []) {
+    detailsSelected[group.id] = [];
+  }
+
   const metaParts = [dish.category];
   if (dish.weight && dish.weight !== "—") metaParts.push(dish.weight);
   const canOrder = !dish.isStopList;
+  const hasModifiers = dishHasModifiers(dish);
+  const initialPrice = formatPrice(dish.price);
+
   detailsBodyEl.innerHTML = `
-    <img class="dish-modal__image" src="${dish.image}" alt="${dish.name}" loading="lazy">
-    <div class="dish-modal__meta">${metaParts.join(" · ")}</div>
-    <h3 class="dish-modal__title">${dish.name}</h3>
-    <p class="dish-modal__description">${dish.tastyDescription || makeTastyDescription(dish)}</p>
-    <p class="dish-modal__price">${formatPrice(dish.price)}</p>
+    <img class="dish-modal__image" src="${escapeHtml(dish.image)}" alt="${escapeHtml(dish.name)}" loading="lazy">
+    <div class="dish-modal__meta">${escapeHtml(metaParts.join(" · "))}</div>
+    <h3 class="dish-modal__title">${escapeHtml(dish.name)}</h3>
+    <p class="dish-modal__description">${escapeHtml(dish.tastyDescription || makeTastyDescription(dish))}</p>
+    ${hasModifiers ? `<div class="dish-modal__modifiers">${renderModifierGroupsHtml(dish)}</div>` : ""}
+    <p class="dish-modal__price" id="dish-details-price">${initialPrice}</p>
     <div class="dish-modal__actions">
       <div class="dish-modal__qty-slot">
         <div class="qty-controls dish-modal__qty">
@@ -262,18 +465,22 @@ function openDishDetails(id) {
       ${
         canOrder
           ? `<button class="btn btn--primary" type="button" data-details-add="${dish.id}">
-        Добавить в корзину
+        ${hasModifiers ? "Добавить" : "Добавить в корзину"}
       </button>`
           : `<button class="btn btn--secondary" type="button" disabled>В стоп-листе</button>`
       }
     </div>
   `;
+  bindModifierControls(dish);
+  updateDetailsPrice(dish);
   detailsModalEl.classList.add("is-open");
 }
 
 function closeDishDetails() {
   if (!detailsModalEl) return;
   detailsModalEl.classList.remove("is-open");
+  detailsDishId = null;
+  detailsSelected = {};
 }
 
 function renderMenuSections() {
@@ -371,85 +578,204 @@ function renderStars(count) {
   return "★".repeat(n) + "☆".repeat(5 - n);
 }
 
-function setupReviewsSection() {
+function reviewSourceKey(source) {
+  if (source === "eda") return "eda";
+  if (source === "site") return "site";
+  return "maps";
+}
+
+function reviewSourceLabel(sourceKey) {
+  if (sourceKey === "eda") return "Яндекс Еда";
+  if (sourceKey === "site") return "Сайт";
+  return "Яндекс Карты";
+}
+
+function appendReviewCard(cardsMount, rev) {
+  const article = document.createElement("article");
+  article.className = "review-card";
+  const sourceKey = reviewSourceKey(rev.source);
+  article.classList.add(`review-card--${sourceKey}`);
+
+  const head = document.createElement("div");
+  head.className = "review-card__head";
+
+  const avatar = document.createElement("div");
+  avatar.className = "review-card__avatar";
+  avatar.setAttribute("aria-hidden", "true");
+  avatar.textContent = rev.initials || String(rev.name || "").slice(0, 2).toUpperCase();
+
+  const meta = document.createElement("div");
+  meta.className = "review-card__meta";
+
+  const nameEl = document.createElement("strong");
+  nameEl.className = "review-card__name";
+  nameEl.textContent = rev.name || "Гость";
+
+  const srcEl = document.createElement("span");
+  srcEl.className = `review-card__source review-card__source--${sourceKey}`;
+  srcEl.textContent = reviewSourceLabel(sourceKey);
+
+  meta.appendChild(nameEl);
+  meta.appendChild(srcEl);
+
+  head.appendChild(avatar);
+  head.appendChild(meta);
+
+  const ratingRow = document.createElement("div");
+  ratingRow.className = "review-card__rating-row";
+  const stars = document.createElement("span");
+  stars.className = "review-card__stars";
+  stars.setAttribute("aria-label", `Оценка ${rev.rating} из 5`);
+  stars.textContent = renderStars(rev.rating);
+  const dateEl = document.createElement("time");
+  dateEl.className = "review-card__date";
+  dateEl.textContent = rev.date || "";
+  ratingRow.appendChild(stars);
+  ratingRow.appendChild(dateEl);
+
+  const textEl = document.createElement("p");
+  textEl.className = "review-card__text";
+  textEl.textContent = rev.text || "";
+
+  const needsToggle = Boolean(rev.long) || String(rev.text || "").length > 260;
+
+  article.appendChild(head);
+  article.appendChild(ratingRow);
+  article.appendChild(textEl);
+
+  if (needsToggle) {
+    article.classList.add("review-card--collapsible");
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "review-card__toggle";
+    toggle.textContent = "Читать полностью";
+    toggle.addEventListener("click", () => {
+      const open = article.classList.toggle("is-expanded");
+      toggle.textContent = open ? "Свернуть" : "Читать полностью";
+    });
+    article.appendChild(toggle);
+  }
+
+  cardsMount.appendChild(article);
+}
+
+async function fetchSiteReviews() {
+  try {
+    const response = await fetch("/api/reviews");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.ok || !Array.isArray(data.reviews)) return [];
+    return data.reviews;
+  } catch {
+    return [];
+  }
+}
+
+function setupReviewForm(onSubmitted) {
+  const panelEl = document.getElementById("review-form-panel");
+  const formEl = document.getElementById("site-review-form");
+  const openBtnEl = document.getElementById("review-form-open");
+  const cancelBtnEl = document.getElementById("review-form-cancel");
+  const statusEl = document.getElementById("review-form-status");
+  const starsWrapEl = document.getElementById("review-rating-stars");
+  const ratingInputEl = document.getElementById("review-rating-value");
+  const submitBtnEl = document.getElementById("review-submit-btn");
+
+  if (!panelEl || !formEl) return;
+
+  function setFormStatus(message, type = "") {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.remove("is-error", "is-success");
+    if (type) statusEl.classList.add(type);
+  }
+
+  function setRating(value) {
+    const rating = Math.min(5, Math.max(1, Number(value) || 5));
+    if (ratingInputEl) ratingInputEl.value = String(rating);
+    if (!starsWrapEl) return;
+    starsWrapEl.querySelectorAll(".review-form__star").forEach((btn) => {
+      const starValue = Number(btn.getAttribute("data-rating"));
+      btn.classList.toggle("is-active", starValue <= rating);
+    });
+  }
+
+  function openPanel() {
+    panelEl.hidden = false;
+    setFormStatus("");
+    panelEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const nameInput = document.getElementById("review-author-name");
+    if (nameInput) nameInput.focus();
+  }
+
+  function closePanel() {
+    panelEl.hidden = true;
+    setFormStatus("");
+  }
+
+  openBtnEl?.addEventListener("click", openPanel);
+  cancelBtnEl?.addEventListener("click", closePanel);
+
+  starsWrapEl?.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-rating]");
+    if (!btn) return;
+    setRating(btn.getAttribute("data-rating"));
+  });
+
+  setRating(5);
+
+  formEl.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setFormStatus("Отправка…");
+    if (submitBtnEl) submitBtnEl.disabled = true;
+
+    const formData = new FormData(formEl);
+    const payload = {
+      authorName: String(formData.get("authorName") || "").trim(),
+      rating: Number(formData.get("rating") || 0),
+      text: String(formData.get("text") || "").trim(),
+      consent: formData.get("consent") === "on"
+    };
+
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok) {
+        const errors = Array.isArray(data?.errors) ? data.errors.join(" ") : data?.message;
+        throw new Error(errors || "Не удалось отправить отзыв.");
+      }
+      formEl.reset();
+      setRating(5);
+      setFormStatus(data.message || "Спасибо! Отзыв отправлен.", "is-success");
+      if (typeof onSubmitted === "function") await onSubmitted();
+    } catch (error) {
+      setFormStatus(error.message || "Не удалось отправить отзыв.", "is-error");
+    } finally {
+      if (submitBtnEl) submitBtnEl.disabled = false;
+    }
+  });
+}
+
+async function setupReviewsSection() {
   const cardsMount = document.getElementById("reviews-cards-mount");
   const widgetMount = document.getElementById("reviews-widget-mount");
   const widgetBlock = document.getElementById("reviews-widget-block");
 
-  const list =
-    typeof guestReviews !== "undefined" && Array.isArray(guestReviews) ? guestReviews : [];
-
-  if (cardsMount) {
+  async function renderReviewCards() {
+    if (!cardsMount) return;
+    const staticList =
+      typeof guestReviews !== "undefined" && Array.isArray(guestReviews) ? guestReviews : [];
+    const siteList = await fetchSiteReviews();
+    const list = [...siteList, ...staticList];
     cardsMount.innerHTML = "";
-    list.forEach((rev) => {
-      const article = document.createElement("article");
-      article.className = "review-card";
-      const sourceKey = rev.source === "eda" ? "eda" : "maps";
-      article.classList.add(`review-card--${sourceKey}`);
-
-      const head = document.createElement("div");
-      head.className = "review-card__head";
-
-      const avatar = document.createElement("div");
-      avatar.className = "review-card__avatar";
-      avatar.setAttribute("aria-hidden", "true");
-      avatar.textContent = rev.initials || String(rev.name || "").slice(0, 2).toUpperCase();
-
-      const meta = document.createElement("div");
-      meta.className = "review-card__meta";
-
-      const nameEl = document.createElement("strong");
-      nameEl.className = "review-card__name";
-      nameEl.textContent = rev.name || "Гость";
-
-      const srcEl = document.createElement("span");
-      srcEl.className = `review-card__source review-card__source--${sourceKey}`;
-      srcEl.textContent = sourceKey === "eda" ? "Яндекс Еда" : "Яндекс Карты";
-
-      meta.appendChild(nameEl);
-      meta.appendChild(srcEl);
-
-      head.appendChild(avatar);
-      head.appendChild(meta);
-
-      const ratingRow = document.createElement("div");
-      ratingRow.className = "review-card__rating-row";
-      const stars = document.createElement("span");
-      stars.className = "review-card__stars";
-      stars.setAttribute("aria-label", `Оценка ${rev.rating} из 5`);
-      stars.textContent = renderStars(rev.rating);
-      const dateEl = document.createElement("time");
-      dateEl.className = "review-card__date";
-      dateEl.textContent = rev.date || "";
-      ratingRow.appendChild(stars);
-      ratingRow.appendChild(dateEl);
-
-      const textEl = document.createElement("p");
-      textEl.className = "review-card__text";
-      textEl.textContent = rev.text || "";
-
-      const needsToggle = Boolean(rev.long) || String(rev.text || "").length > 260;
-
-      article.appendChild(head);
-      article.appendChild(ratingRow);
-      article.appendChild(textEl);
-
-      if (needsToggle) {
-        article.classList.add("review-card--collapsible");
-        const toggle = document.createElement("button");
-        toggle.type = "button";
-        toggle.className = "review-card__toggle";
-        toggle.textContent = "Читать полностью";
-        toggle.addEventListener("click", () => {
-          const open = article.classList.toggle("is-expanded");
-          toggle.textContent = open ? "Свернуть" : "Читать полностью";
-        });
-        article.appendChild(toggle);
-      }
-
-      cardsMount.appendChild(article);
-    });
+    list.forEach((rev) => appendReviewCard(cardsMount, rev));
   }
+
+  setupReviewForm(renderReviewCards);
+  await renderReviewCards();
 
   if (!widgetMount || !widgetBlock) return;
 
@@ -527,22 +853,30 @@ function renderCart() {
       const node = document.createElement("div");
       node.className = "cart-item";
       const tags = Array.isArray(item.tags) ? item.tags.slice(0, 2) : [];
-      const cartMeta = item.weight && item.weight !== "—" ? `<span class="cart-item__meta">${item.weight}</span>` : "";
+      const cartKey = encodeURIComponent(item.cartKey);
+      const cartMeta = item.weight && item.weight !== "—" ? `<span class="cart-item__meta">${escapeHtml(item.weight)}</span>` : "";
+      const modifiersHtml =
+        Array.isArray(item.modifiers) && item.modifiers.length
+          ? `<ul class="cart-item__modifiers">${item.modifiers
+              .map((modifier) => `<li>+ ${escapeHtml(modifier.name)}</li>`)
+              .join("")}</ul>`
+          : "";
       node.innerHTML = `
-        <img class="cart-item__image" src="${item.image}" alt="${item.name}" loading="lazy">
+        <img class="cart-item__image" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">
         <div class="cart-item__body">
-          <strong class="cart-item__title">${item.name}</strong>
+          <strong class="cart-item__title">${escapeHtml(item.name)}</strong>
           ${cartMeta}
-          <div class="cart-item__tags">${tags.map((tag) => `<span class="cart-item__tag">${tag}</span>`).join("")}</div>
+          ${modifiersHtml}
+          <div class="cart-item__tags">${tags.map((tag) => `<span class="cart-item__tag">${escapeHtml(tag)}</span>`).join("")}</div>
           <div class="cart-item__footer">
             <div class="cart-item__price">
               <span>${formatPrice(item.price)}</span>
               <small>${formatPrice(item.price * item.qty)}</small>
             </div>
             <div class="qty-controls">
-              <button type="button" data-qty-minus="${item.id}" aria-label="Уменьшить количество">−</button>
+              <button type="button" data-qty-minus="${cartKey}" aria-label="Уменьшить количество">−</button>
               <span>${item.qty}</span>
-              <button type="button" data-qty-plus="${item.id}" aria-label="Увеличить количество">+</button>
+              <button type="button" data-qty-plus="${cartKey}" aria-label="Увеличить количество">+</button>
             </div>
           </div>
         </div>
@@ -560,14 +894,39 @@ function renderCart() {
   renderMenuSections();
 }
 
+function addToCartLine({ menuItem, modifiers = [], qty = 1 }) {
+  if (!menuItem || menuItem.isStopList) return;
+  const picked = Array.isArray(modifiers) ? modifiers : [];
+  const cartKey = buildCartLineKey(menuItem.id, picked);
+  const unitPrice = calcLineUnitPrice(menuItem.price, picked);
+  const displayName = formatOrderItemName(menuItem.name, picked);
+
+  if (!appState.cart[cartKey]) {
+    appState.cart[cartKey] = {
+      cartKey,
+      id: menuItem.id,
+      name: displayName,
+      baseName: menuItem.name,
+      price: unitPrice,
+      basePrice: menuItem.price,
+      modifiers: picked,
+      qty: 0,
+      image: menuItem.image,
+      weight: menuItem.weight,
+      tags: menuItem.tags,
+      category: menuItem.category,
+      isStopList: menuItem.isStopList
+    };
+  }
+
+  appState.cart[cartKey].qty += Math.max(1, Number(qty) || 1);
+  renderCart();
+}
+
 function addToCart(id, qty = 1) {
   const menuItem = menuCatalogItems.find((item) => item.id === Number(id));
-  if (!menuItem || menuItem.isStopList) return;
-  if (!appState.cart[id]) {
-    appState.cart[id] = { ...menuItem, qty: 0 };
-  }
-  appState.cart[id].qty += Math.max(1, Number(qty) || 1);
-  renderCart();
+  if (!menuItem) return;
+  addToCartLine({ menuItem, qty });
 }
 
 function animateAddToCart(sourceButton) {
@@ -596,12 +955,13 @@ function animateAddToCart(sourceButton) {
   ).onfinish = () => dot.remove();
 }
 
-function changeQty(id, delta) {
-  const entry = appState.cart[id];
+function changeQty(cartKey, delta) {
+  const key = decodeURIComponent(String(cartKey || ""));
+  const entry = appState.cart[key];
   if (!entry) return;
   entry.qty += delta;
   if (entry.qty <= 0) {
-    delete appState.cart[id];
+    delete appState.cart[key];
   }
   renderCart();
 }
@@ -659,6 +1019,11 @@ function initEvents() {
     const detailsAdd = target.getAttribute("data-details-add");
 
     if (addId) {
+      const menuItem = menuCatalogItems.find((item) => item.id === Number(addId));
+      if (menuItem && dishHasModifiers(menuItem)) {
+        openDishDetails(addId);
+        return;
+      }
       addToCart(addId);
       markDishAdded(addId);
       animateAddToCart(target);
@@ -667,7 +1032,7 @@ function initEvents() {
     if (plusId) changeQty(plusId, 1);
     if (minusId) changeQty(minusId, -1);
     if (cardPlusId) addToCart(cardPlusId);
-    if (cardMinusId) changeQty(cardMinusId, -1);
+    if (cardMinusId) changeQty(String(cardMinusId), -1);
     if (detailsQtyPlus) {
       detailsQty += 1;
       const qtyEl = document.getElementById("dish-details-qty");
@@ -679,8 +1044,17 @@ function initEvents() {
       if (qtyEl) qtyEl.textContent = detailsQty;
     }
     if (detailsAdd) {
-      addToCart(detailsAdd, detailsQty);
-      animateAddToCart(cartTriggerEl);
+      const dish = menuCatalogItems.find((item) => item.id === Number(detailsAdd));
+      if (!dish) return;
+      const validationError = validateModifierSelection(dish, detailsSelected);
+      if (validationError) {
+        alert(validationError);
+        return;
+      }
+      const modifiers = getModifiersFromSelection(dish, detailsSelected);
+      addToCartLine({ menuItem: dish, modifiers, qty: detailsQty });
+      markDishAdded(detailsAdd);
+      animateAddToCart(target);
       closeDishDetails();
       openCart();
     }
@@ -741,7 +1115,14 @@ function initEvents() {
         id: item.id,
         name: item.name,
         qty: item.qty,
-        price: item.price
+        price: item.price,
+        modifiers: Array.isArray(item.modifiers)
+          ? item.modifiers.map((modifier) => ({
+              id: modifier.id,
+              name: modifier.name,
+              price: modifier.price
+            }))
+          : []
       }))
     };
 
@@ -842,10 +1223,12 @@ async function init() {
   appState.activeCategory = getFirstMenuCategory() || categories[0] || "";
   renderFilters();
   renderMenuSections();
-  setupReviewsSection();
+  await setupReviewsSection();
   renderCart();
   hydrateCheckoutContacts();
   initEvents();
 }
 
 init();
+
+

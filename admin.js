@@ -16,6 +16,7 @@ const prevPageBtnEl = document.getElementById("items-prev-page");
 const nextPageBtnEl = document.getElementById("items-next-page");
 const pageInfoEl = document.getElementById("items-page-info");
 const totalInfoEl = document.getElementById("items-total-info");
+const reviewsAdminListEl = document.getElementById("reviews-admin-list");
 
 const STORAGE_KEY = "restobar_admin_token";
 let adminToken = localStorage.getItem(STORAGE_KEY) || "";
@@ -308,6 +309,52 @@ async function saveItemsOrder() {
   await Promise.all(updates);
 }
 
+const reviewStatusLabels = {
+  pending: "На проверке",
+  approved: "Опубликован",
+  rejected: "Отклонён"
+};
+
+function formatReviewDate(iso) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("ru-RU");
+}
+
+function renderAdminReviews(reviews) {
+  if (!reviewsAdminListEl) return;
+  if (!reviews.length) {
+    reviewsAdminListEl.innerHTML = '<p style="margin:0;color:var(--muted);">Отзывов пока нет.</p>';
+    return;
+  }
+  reviewsAdminListEl.innerHTML = reviews
+    .map((review) => {
+      const status = review.status || "pending";
+      const label = reviewStatusLabels[status] || status;
+      return `
+        <div style="border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;">
+          <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <strong>${escapeHtml(review.authorName)} · ${"★".repeat(review.rating)}</strong>
+            <span style="color:var(--muted);font-size:12px;">${escapeHtml(label)} · ${escapeHtml(formatReviewDate(review.createdAt))}</span>
+          </div>
+          <p style="margin:0 0 8px;white-space:pre-wrap;">${escapeHtml(review.text)}</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${status !== "approved" ? `<button class="btn btn--primary" type="button" data-review-approve="${review.id}">Одобрить</button>` : ""}
+            ${status !== "rejected" ? `<button class="btn btn--secondary" type="button" data-review-reject="${review.id}">Отклонить</button>` : ""}
+            <button class="btn btn--secondary" type="button" data-review-delete="${review.id}">Удалить</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+async function reloadReviewsAdmin() {
+  const data = await api("/api/admin/reviews");
+  const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+  renderAdminReviews(reviews);
+}
+
 async function reloadAll() {
   const menu = await api("/api/admin/menu");
   sections = Array.isArray(menu.sections) ? menu.sections : [];
@@ -317,6 +364,7 @@ async function reloadAll() {
   renderSectionOptions();
   renderSections();
   renderItems();
+  await reloadReviewsAdmin();
   const delivery = await api("/api/admin/delivery-content");
   deliveryHtmlEl.value = delivery.contentHtml || "";
 }
@@ -608,6 +656,36 @@ prevPageBtnEl.addEventListener("click", () => {
 nextPageBtnEl.addEventListener("click", () => {
   currentPage += 1;
   renderItems();
+});
+
+reviewsAdminListEl?.addEventListener("click", async (event) => {
+  const approveId = event.target.getAttribute("data-review-approve");
+  const rejectId = event.target.getAttribute("data-review-reject");
+  const deleteId = event.target.getAttribute("data-review-delete");
+  try {
+    if (approveId) {
+      await api(`/api/admin/reviews/${approveId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "approved" })
+      });
+      setStatus("Отзыв опубликован на сайте.");
+    }
+    if (rejectId) {
+      await api(`/api/admin/reviews/${rejectId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "rejected" })
+      });
+      setStatus("Отзыв отклонён.");
+    }
+    if (deleteId) {
+      if (!window.confirm("Удалить отзыв безвозвратно?")) return;
+      await api(`/api/admin/reviews/${deleteId}`, { method: "DELETE" });
+      setStatus("Отзыв удалён.");
+    }
+    if (approveId || rejectId || deleteId) await reloadReviewsAdmin();
+  } catch (error) {
+    setStatus(error.message, true);
+  }
 });
 
 document.getElementById("save-delivery").addEventListener("click", async () => {

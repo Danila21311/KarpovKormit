@@ -2,6 +2,7 @@ const fs = require("fs/promises");
 const path = require("path");
 const { Pool } = require("pg");
 const { loadMenuItems } = require("./menu-loader");
+const { getMenuModifiersForItem } = require("../menu-modifiers-presets");
 
 /**
  * Supabase pooler (PgBouncer) + node-pg: prefer disabling prepared statements
@@ -147,9 +148,59 @@ async function initDb() {
   const schemaPath = path.join(__dirname, "..", "db", "schema.sql");
   const schemaSql = await fs.readFile(schemaPath, "utf8");
   await pool.query(schemaSql);
+  await pool.query(
+    `ALTER TABLE menu_items
+     ADD COLUMN IF NOT EXISTS modifiers JSONB NOT NULL DEFAULT '[]'::jsonb`
+  );
   await ensureCatalogSeed();
   await ensureDeliverySeed();
+  await ensureModifiersSeed();
   initialized = true;
+}
+
+function normalizeModifierGroups(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((group) => ({
+      id: String(group?.id || "").trim(),
+      title: String(group?.title || "").trim(),
+      min: Math.max(0, Number(group?.min) || 0),
+      max: Math.max(0, Number(group?.max) || 0),
+      options: Array.isArray(group?.options)
+        ? group.options
+            .map((option) => ({
+              id: String(option?.id || "").trim(),
+              name: String(option?.name || "").trim(),
+              price: Math.max(0, Math.round(Number(option?.price) || 0))
+            }))
+            .filter((option) => option.id && option.name)
+        : []
+    }))
+    .filter((group) => group.id && group.title && group.options.length);
+}
+
+function resolveItemModifiers(dbModifiers, itemName) {
+  const stored = normalizeModifierGroups(dbModifiers);
+  if (stored.length) return stored;
+  return normalizeModifierGroups(getMenuModifiersForItem(itemName));
+}
+
+async function ensureModifiersSeed() {
+  const rows = await pool.query(`SELECT id, name, modifiers FROM menu_items`);
+  for (const row of rows.rows) {
+    const raw = row.modifiers;
+    const isEmpty =
+      raw == null ||
+      (Array.isArray(raw) && raw.length === 0) ||
+      (typeof raw === "string" && (raw === "[]" || !raw.trim()));
+    if (!isEmpty) continue;
+    const preset = getMenuModifiersForItem(row.name);
+    if (!preset.length) continue;
+    await pool.query(`UPDATE menu_items SET modifiers = $2::jsonb, updated_at = NOW() WHERE id = $1`, [
+      row.id,
+      JSON.stringify(preset)
+    ]);
+  }
 }
 
 async function ensureCatalogSeed() {
@@ -239,6 +290,7 @@ async function getPublicMenuData() {
         mi.price,
         COALESCE(mi.image, '') AS image,
         COALESCE(mi.tags, '[]'::jsonb) AS tags,
+        COALESCE(mi.modifiers, '[]'::jsonb) AS modifiers,
         mi.is_stop_list AS "isStopList",
         ms.name AS category,
         mi.sort_order
@@ -264,6 +316,7 @@ async function getPublicMenuData() {
       price: Number(row.price),
       image: row.image || "",
       tags: Array.isArray(row.tags) ? row.tags : [],
+      modifierGroups: resolveItemModifiers(row.modifiers, row.name),
       isStopList: Boolean(row.isStopList)
     }))
   };
@@ -615,6 +668,103 @@ async function addIntegrationLog(log) {
   );
 }
 
+function initialsFromName(name) {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return "Г";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+}
+
+function formatReviewDateRu(isoDate) {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function mapPublicReviewRow(row) {
+  const text = String(row.review_text || "").trim();
+  return {
+    initials: initialsFromName(row.author_name),
+    name: row.author_name,
+    source: "site",
+    date: formatReviewDateRu(row.created_at),
+    rating: Number(row.rating),
+    text,
+    long: text.length > 260
+  };
+}
+
+function mapAdminReviewRow(row) {
+  return {
+    id: Number(row.id),
+    authorName: row.author_name,
+    rating: Number(row.rating),
+    text: row.review_text,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+async function getPublicSiteReviews() {
+  await initDb();
+  const result = await pool.query(
+    `SELECT author_name, rating, review_text, created_at
+     FROM site_reviews
+     WHERE status = 'approved'
+     ORDER BY created_at DESC
+     LIMIT 50`
+  );
+  return result.rows.map(mapPublicReviewRow);
+}
+
+async function createSiteReview(input) {
+  await initDb();
+  const result = await pool.query(
+    `INSERT INTO site_reviews (author_name, rating, review_text, status)
+     VALUES ($1, $2, $3, 'pending')
+     RETURNING id`,
+    [input.authorName, input.rating, input.text]
+  );
+  return Number(result.rows[0].id);
+}
+
+async function getAdminSiteReviews() {
+  await initDb();
+  const result = await pool.query(
+    `SELECT id, author_name, rating, review_text, status, created_at, updated_at
+     FROM site_reviews
+     ORDER BY created_at DESC
+     LIMIT 200`
+  );
+  return result.rows.map(mapAdminReviewRow);
+}
+
+async function updateSiteReviewStatus(id, status) {
+  await initDb();
+  const allowed = new Set(["pending", "approved", "rejected"]);
+  if (!allowed.has(status)) {
+    throw new Error("Invalid review status.");
+  }
+  const result = await pool.query(
+    `UPDATE site_reviews
+     SET status = $2, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id`,
+    [id, status]
+  );
+  if (!result.rowCount) throw new Error("Review not found.");
+}
+
+async function deleteSiteReview(id) {
+  await initDb();
+  const result = await pool.query(`DELETE FROM site_reviews WHERE id = $1 RETURNING id`, [id]);
+  if (!result.rowCount) throw new Error("Review not found.");
+}
+
 module.exports = {
   initDb,
   createOrderWithItems,
@@ -629,5 +779,10 @@ module.exports = {
   updateMenuItem,
   deleteMenuItem,
   getDeliveryContent,
-  updateDeliveryContent
+  updateDeliveryContent,
+  getPublicSiteReviews,
+  createSiteReview,
+  getAdminSiteReviews,
+  updateSiteReviewStatus,
+  deleteSiteReview
 };

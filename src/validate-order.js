@@ -38,11 +38,23 @@ function validateOrderPayload(payload) {
       errors.push(`Некорректная позиция: ${item.name || "без названия"}.`);
       continue;
     }
+    const modifiers = Array.isArray(item.modifiers)
+      ? item.modifiers
+          .filter((modifier) => modifier && typeof modifier === "object")
+          .map((modifier) => ({
+            id: String(modifier.id || "").trim(),
+            name: String(modifier.name || "").trim(),
+            price: Math.max(0, Math.round(Number(modifier.price) || 0))
+          }))
+          .filter((modifier) => modifier.id && modifier.name)
+      : [];
+
     normalizedItems.push({
       id: item.id,
-      name: String(item.name),
+      name: String(item.name).trim().slice(0, 240),
       qty: Math.round(qty),
-      price: Math.round(price)
+      price: Math.round(price),
+      modifiers
     });
   }
 

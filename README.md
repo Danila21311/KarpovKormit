@@ -23,6 +23,8 @@ The `api/` folder is an optional **serverless** wrapper (`serverless-http`) for 
 
 - `GET /api/health` - health check
 - `GET /api/menu` - menu from `menu-data.js`
+- `GET /api/reviews` - approved guest reviews from the site
+- `POST /api/reviews` - submit a review (moderation required)
 - `POST /api/order` - create order, store to DB, send to iiko adapter
 
 ## iiko integration

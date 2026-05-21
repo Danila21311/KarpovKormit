@@ -1197,6 +1197,127 @@ main > .welcome-banner:first-child {
   color: var(--accent);
 }
 
+.review-form-panel {
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+}
+
+.review-form-panel[hidden] {
+  display: none;
+}
+
+.review-form-panel__title {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.review-form-panel__lead {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.review-form {
+  display: grid;
+  gap: 14px;
+}
+
+.review-form__field {
+  display: grid;
+  gap: 6px;
+}
+
+.review-form__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4038;
+}
+
+.review-form__field input,
+.review-form__field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  background: #fffdf9;
+}
+
+.review-form__field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.review-form__rating-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.review-form__stars {
+  display: flex;
+  gap: 4px;
+}
+
+.review-form__star {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: #c8bdb2;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.review-form__star:hover,
+.review-form__star.is-active {
+  color: #c47a2c;
+  border-color: rgba(190, 89, 55, 0.45);
+  background: rgba(190, 89, 55, 0.08);
+}
+
+.review-form__consent {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.review-form__consent a {
+  color: var(--accent-dark);
+}
+
+.review-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.review-form__status {
+  margin: 0;
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.review-form__status.is-error {
+  color: #b2452f;
+}
+
+.review-form__status.is-success {
+  color: #2d6a4f;
+}
+
 .reviews-cards {
   display: grid;
   grid-template-columns: 1fr;
@@ -1249,6 +1370,15 @@ main > .welcome-banner:first-child {
 
 .review-card--eda .review-card__avatar {
   background: linear-gradient(145deg, #fcefe8, #f0d9ca);
+}
+
+.review-card--site .review-card__avatar {
+  background: linear-gradient(145deg, #e3efe8, #c5e0d0);
+}
+
+.review-card__source--site {
+  background: rgba(45, 106, 79, 0.12);
+  color: #2d6a4f;
 }
 
 .review-card__meta {
@@ -2186,6 +2316,87 @@ main > .welcome-banner:first-child {
   margin: 12px 0 0;
   font-size: 1.15rem;
   font-weight: 700;
+}
+
+.dish-modal__modifiers {
+  display: grid;
+  gap: 14px;
+  margin: 12px 0 4px;
+}
+
+.dish-modal__modifier-group {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.dish-modal__modifier-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dish-modal__modifier-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.dish-modal__modifier-hint {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.dish-modal__modifier-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.dish-modal__modifier-option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  background: #fffdf9;
+}
+
+.dish-modal__modifier-option:has(input:checked) {
+  border-color: rgba(190, 89, 55, 0.55);
+  background: rgba(190, 89, 55, 0.06);
+}
+
+.dish-modal__modifier-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.dish-modal__modifier-option-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dish-modal__modifier-option-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.cart-item__modifiers {
+  margin: 4px 0 0;
+  padding: 0 0 0 16px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .dish-modal__actions {

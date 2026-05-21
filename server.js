@@ -27,9 +27,15 @@ const {
   updateMenuItem,
   deleteMenuItem,
   getDeliveryContent,
-  updateDeliveryContent
+  updateDeliveryContent,
+  getPublicSiteReviews,
+  createSiteReview,
+  getAdminSiteReviews,
+  updateSiteReviewStatus,
+  deleteSiteReview
 } = require("./src/db");
 const { validateOrderPayload } = require("./src/validate-order");
+const { validateReviewPayload } = require("./src/validate-review");
 const { decodeAdminTokenFromHeader } = require("./src/admin-token");
 const { sendOrderToIiko } = require("./src/iiko-client");
 const { loadMenuItems } = require("./src/menu-loader");
@@ -67,6 +73,38 @@ app.get("/api/menu", async (req, res) => {
     } catch (fallbackError) {
       res.status(500).json({ ok: false, message: "Failed to load menu." });
     }
+  }
+});
+
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const reviews = await getPublicSiteReviews();
+    res.json({ ok: true, reviews });
+  } catch (error) {
+    console.error("GET /api/reviews:", error.message);
+    res.json({ ok: true, reviews: [] });
+  }
+});
+
+app.post("/api/reviews", async (req, res) => {
+  const validation = validateReviewPayload(req.body);
+  if (!validation.ok) {
+    return res.status(400).json({ ok: false, errors: validation.errors });
+  }
+  try {
+    const reviewId = await createSiteReview(validation.value);
+    res.status(201).json({
+      ok: true,
+      reviewId,
+      message:
+        "Спасибо! Отзыв отправлен на проверку и появится на сайте после одобрения администратором."
+    });
+  } catch (error) {
+    console.error("POST /api/reviews:", error.message);
+    res.status(500).json({
+      ok: false,
+      message: "Не удалось отправить отзыв. Попробуйте позже."
+    });
   }
 });
 
@@ -195,6 +233,34 @@ app.get("/api/admin/delivery-content", requireAdmin, async (req, res) => {
     res.json({ ok: true, ...content });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to load delivery content." });
+  }
+});
+
+app.get("/api/admin/reviews", requireAdmin, async (req, res) => {
+  try {
+    const reviews = await getAdminSiteReviews();
+    res.json({ ok: true, reviews });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Не удалось загрузить отзывы." });
+  }
+});
+
+app.patch("/api/admin/reviews/:id", requireAdmin, async (req, res) => {
+  try {
+    const status = String(req.body?.status || "").trim();
+    await updateSiteReviewStatus(req.params.id, status);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Не удалось обновить отзыв." });
+  }
+});
+
+app.delete("/api/admin/reviews/:id", requireAdmin, async (req, res) => {
+  try {
+    await deleteSiteReview(req.params.id);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ ok: false, message: error.message || "Не удалось удалить отзыв." });
   }
 });
 

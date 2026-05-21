@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
   is_stop_list BOOLEAN NOT NULL DEFAULT FALSE,
   sort_order INTEGER NOT NULL DEFAULT 0,
+  modifiers JSONB NOT NULL DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -70,3 +71,15 @@ CREATE TABLE IF NOT EXISTS delivery_content (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CHECK (id = 1)
 );
+
+CREATE TABLE IF NOT EXISTS site_reviews (
+  id BIGSERIAL PRIMARY KEY,
+  author_name TEXT NOT NULL,
+  rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  review_text TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_site_reviews_status_created ON site_reviews(status, created_at DESC);
