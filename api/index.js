@@ -1,6 +1,6 @@
 /**
- * Точка входа Vercel: Express как одна serverless-функция.
- * Локально по-прежнему `npm start` → server.js.
+ * Опциональная точка входа для serverless (например Vercel): Express через serverless-http.
+ * Продакшен на Railway: `npm start` → server.js напрямую.
  */
 const serverless = require("serverless-http");
 const app = require("../server");

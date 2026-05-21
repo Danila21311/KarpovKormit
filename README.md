@@ -13,6 +13,12 @@
 5. Open:
    - `http://localhost:3000`
 
+## Deployment (production)
+
+The public site runs on **[Railway](https://railway.app/)**: start command `npm start` (runs `server.js`). In the Railway service, set environment variables (at minimum `DATABASE_URL` from the Railway Postgres plugin or an external URL; copy the rest from `.env.example` as needed). The app enables TLS for hosted Postgres URLs such as `*.railway.app` (see `src/db.js`).
+
+The `api/` folder is an optional **serverless** wrapper (`serverless-http`) for hosts like Vercel; it is not required for Railway.
+
 ## API
 
 - `GET /api/health` - health check

@@ -1,7 +1,17 @@
 require("dotenv").config();
 
+const { warnAdminTokenEnvIssues } = require("./src/env-warnings");
+warnAdminTokenEnvIssues();
+
 const express = require("express");
 const path = require("path");
+const multer = require("multer");
+const {
+  createMenuImageStorage,
+  menuImageFileFilter,
+  publicUrlForUploadedFile,
+  MAX_BYTES
+} = require("./src/upload-menu-image");
 
 const {
   initDb,
@@ -20,6 +30,7 @@ const {
   updateDeliveryContent
 } = require("./src/db");
 const { validateOrderPayload } = require("./src/validate-order");
+const { decodeAdminTokenFromHeader } = require("./src/admin-token");
 const { sendOrderToIiko } = require("./src/iiko-client");
 const { loadMenuItems } = require("./src/menu-loader");
 
@@ -27,6 +38,12 @@ const app = express();
 const port = Number(process.env.PORT || 3000);
 
 app.use(express.json({ limit: "1mb" }));
+
+const menuImageUpload = multer({
+  storage: multer.diskStorage(createMenuImageStorage()),
+  limits: { fileSize: MAX_BYTES, files: 1 },
+  fileFilter: menuImageFileFilter
+});
 
 app.get("/api/health", async (req, res) => {
   try {
@@ -65,9 +82,9 @@ app.get("/api/delivery-content", async (req, res) => {
 function extractAdminToken(req) {
   const bearer = String(req.headers.authorization || "");
   if (bearer.toLowerCase().startsWith("bearer ")) {
-    return bearer.slice(7).trim();
+    return decodeAdminTokenFromHeader(bearer.slice(7));
   }
-  return String(req.headers["x-admin-token"] || "").trim();
+  return decodeAdminTokenFromHeader(req.headers["x-admin-token"]);
 }
 
 function requireAdmin(req, res, next) {
@@ -77,9 +94,28 @@ function requireAdmin(req, res, next) {
   }
   const actual = extractAdminToken(req);
   if (!actual || actual !== expected) {
-    return res.status(401).json({ ok: false, message: "Admin authorization failed." });
+    return res.status(401).json({
+      ok: false,
+      message: "Неверный ADMIN_TOKEN.",
+      code: "admin_auth_failed"
+    });
   }
   return next();
+}
+
+app.get("/api/admin/ping", requireAdmin, (req, res) => {
+  res.json({ ok: true });
+});
+
+if (process.env.NODE_ENV !== "production") {
+  app.get("/api/admin/auth-hint", (req, res) => {
+    const expected = String(process.env.ADMIN_TOKEN || "").trim();
+    res.json({
+      ok: true,
+      configured: Boolean(expected),
+      length: expected.length
+    });
+  });
 }
 
 app.get("/api/admin/menu", requireAdmin, async (req, res) => {
@@ -87,7 +123,15 @@ app.get("/api/admin/menu", requireAdmin, async (req, res) => {
     const data = await getAdminMenuData();
     res.json({ ok: true, ...data });
   } catch (error) {
-    res.status(500).json({ ok: false, message: "Failed to load admin menu data." });
+    console.error("GET /api/admin/menu:", error.message);
+    const isDev = process.env.NODE_ENV !== "production";
+    res.status(500).json({
+      ok: false,
+      message:
+        "Не удалось загрузить меню из базы данных. Проверьте DATABASE_URL в .env (для локальной работы — Session pooler Supabase на порту 5432 или локальный Postgres).",
+      code: "admin_menu_db_failed",
+      ...(isDev && error.message ? { detail: error.message } : {})
+    });
   }
 });
 
@@ -164,6 +208,25 @@ app.put("/api/admin/delivery-content", requireAdmin, async (req, res) => {
   }
 });
 
+app.post("/api/admin/upload-image", requireAdmin, (req, res) => {
+  menuImageUpload.single("image")(req, res, (error) => {
+    if (error) {
+      const message =
+        error.code === "LIMIT_FILE_SIZE"
+          ? "Файл слишком большой (максимум 5 МБ)."
+          : error.message || "Не удалось загрузить изображение.";
+      return res.status(400).json({ ok: false, message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ ok: false, message: "Выберите файл изображения." });
+    }
+    return res.json({
+      ok: true,
+      url: publicUrlForUploadedFile(req.file.filename)
+    });
+  });
+});
+
 app.post("/api/order", async (req, res) => {
   const validation = validateOrderPayload(req.body);
   if (!validation.ok) {
@@ -238,6 +301,7 @@ app.post("/api/order", async (req, res) => {
   }
 });
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(__dirname));
 
 app.use((req, res) => {

@@ -31,10 +31,24 @@ function setStatus(message, isError = false) {
   statusEl.style.color = isError ? "#b2452f" : "var(--muted)";
 }
 
+function encodeAdminTokenForHeader(token) {
+  const raw = String(token || "").trim();
+  if (!raw) return "";
+  if (!/[^\u0000-\u00ff]/u.test(raw)) return raw;
+  const bytes = new TextEncoder().encode(raw);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return `b64.${btoa(binary)}`;
+}
+
+function adminTokenHeader(token = adminToken) {
+  return { "x-admin-token": encodeAdminTokenForHeader(token) };
+}
+
 function authHeaders() {
   return {
     "Content-Type": "application/json",
-    "x-admin-token": adminToken
+    ...adminTokenHeader()
   };
 }
 
@@ -49,22 +63,50 @@ async function api(path, options = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data?.ok) {
-    throw new Error(data?.message || "Ошибка запроса.");
+    const message = data?.message || "Ошибка запроса.";
+    const detail = data?.detail ? ` (${data.detail})` : "";
+    throw new Error(`${message}${detail}`);
   }
   return data;
+}
+
+async function formatAdminAuthError(response, data, enteredLength = 0) {
+  if (response.status !== 401) {
+    return data?.message || "Ошибка запроса.";
+  }
+  let hint =
+    "Проверьте ADMIN_TOKEN в .env. Если в токене есть символ #, возьмите значение в кавычки: ADMIN_TOKEN=\"...\". После правки перезапустите npm run dev.";
+  try {
+    const hintResponse = await fetch("/api/admin/auth-hint");
+    const hintData = await hintResponse.json().catch(() => ({}));
+    if (hintData?.configured && Number.isFinite(hintData.length)) {
+      hint += ` Сервер сейчас принимает токен из ${hintData.length} символов.`;
+      if (enteredLength > 0 && enteredLength !== hintData.length) {
+        hint += ` Вы ввели ${enteredLength} символов.`;
+      }
+    } else if (!hintData?.configured) {
+      hint =
+        "На сервере не задан ADMIN_TOKEN. Добавьте строку ADMIN_TOKEN=... в .env и перезапустите npm run dev.";
+    }
+  } catch {
+    // ignore hint errors
+  }
+  return data?.message ? `${data.message} ${hint}` : hint;
 }
 
 async function verifyAdminToken(token) {
   const candidate = String(token || "").trim();
   if (!candidate) throw new Error("Введите токен.");
-  const response = await fetch("/api/admin/menu", {
+  const response = await fetch("/api/admin/ping", {
     headers: {
       "Content-Type": "application/json",
-      "x-admin-token": candidate
+      ...adminTokenHeader(candidate)
     }
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data?.ok) throw new Error(data?.message || "Неверный токен.");
+  if (!response.ok || !data?.ok) {
+    throw new Error(await formatAdminAuthError(response, data, candidate.length));
+  }
   adminToken = candidate;
   localStorage.setItem(STORAGE_KEY, adminToken);
 }
@@ -74,6 +116,59 @@ function parseTags(value) {
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+async function uploadImageFile(file) {
+  if (!adminToken) throw new Error("Сначала укажите ADMIN_TOKEN.");
+  const formData = new FormData();
+  formData.append("image", file);
+  const response = await fetch("/api/admin/upload-image", {
+    method: "POST",
+    headers: adminTokenHeader(),
+    body: formData
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data?.ok) {
+    throw new Error(data?.message || "Не удалось загрузить фото.");
+  }
+  return String(data.url || "").trim();
+}
+
+function setImagePreview(previewEl, url) {
+  if (!previewEl) return;
+  if (url) {
+    previewEl.src = url;
+    previewEl.hidden = false;
+  } else {
+    previewEl.removeAttribute("src");
+    previewEl.hidden = true;
+  }
+}
+
+function imageFieldHtml(id, imageUrl) {
+  const url = escapeHtml(imageUrl || "");
+  const hasImage = Boolean(String(imageUrl || "").trim());
+  return `
+    <div class="admin-image-row">
+      <input type="text" readonly value="${url}" data-i-image="${id}" placeholder="Фото не выбрано">
+      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden data-i-image-file="${id}">
+      <button class="btn btn--secondary" type="button" data-i-image-pick="${id}">Выбрать фото</button>
+      <img class="admin-image-preview" src="${url}" alt="" data-i-image-preview="${id}"${hasImage ? "" : " hidden"}>
+    </div>
+  `;
+}
+
+function clearNewItemImage() {
+  document.getElementById("new-item-image").value = "";
+  setImagePreview(document.getElementById("new-item-image-preview"), "");
 }
 
 function sortSections() {
@@ -153,15 +248,15 @@ function itemCard(item) {
         <span style="color:var(--muted);font-size:12px;">drag & drop</span>
       </div>
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;">
-        <input type="text" value="${item.name}" data-i-name="${item.id}">
+        <input type="text" value="${escapeHtml(item.name)}" data-i-name="${item.id}">
         <input type="number" value="${item.price}" min="0" data-i-price="${item.id}">
         <select data-i-section="${item.id}">${sectionOptions}</select>
-        <input type="text" value="${item.weight || "—"}" data-i-weight="${item.id}">
-        <input type="url" value="${item.image || ""}" data-i-image="${item.id}">
-        <input type="text" value="${tags}" data-i-tags="${item.id}" placeholder="теги через запятую">
+        <input type="text" value="${escapeHtml(item.weight || "—")}" data-i-weight="${item.id}">
+        <input type="text" value="${escapeHtml(tags)}" data-i-tags="${item.id}" placeholder="теги через запятую">
       </div>
-      <textarea rows="2" data-i-desc="${item.id}" style="margin-top:8px;width:100%;">${item.description || ""}</textarea>
-      <textarea rows="2" data-i-tasty="${item.id}" style="margin-top:8px;width:100%;">${item.tastyDescription || ""}</textarea>
+      ${imageFieldHtml(item.id, item.image)}
+      <textarea rows="2" data-i-desc="${item.id}" style="margin-top:8px;width:100%;">${escapeHtml(item.description || "")}</textarea>
+      <textarea rows="2" data-i-tasty="${item.id}" style="margin-top:8px;width:100%;">${escapeHtml(item.tastyDescription || "")}</textarea>
       <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
         <label><input type="checkbox" data-i-hidden="${item.id}" ${item.isHidden ? "checked" : ""}> скрыть</label>
         <label><input type="checkbox" data-i-stop="${item.id}" ${item.isStopList ? "checked" : ""}> стоп-лист</label>
@@ -291,8 +386,9 @@ document.getElementById("add-item").addEventListener("click", async () => {
   }
   try {
     await api("/api/admin/items", { method: "POST", body: JSON.stringify(payload) });
-    ["new-item-name", "new-item-price", "new-item-weight", "new-item-image", "new-item-tags", "new-item-description", "new-item-tasty"]
+    ["new-item-name", "new-item-price", "new-item-weight", "new-item-tags", "new-item-description", "new-item-tasty"]
       .forEach((id) => { document.getElementById(id).value = ""; });
+    clearNewItemImage();
     document.getElementById("new-item-hidden").checked = false;
     document.getElementById("new-item-stop").checked = false;
     await reloadAll();
@@ -366,7 +462,34 @@ sectionsListEl.addEventListener("drop", async (event) => {
   }
 });
 
+document.getElementById("new-item-image-pick").addEventListener("click", () => {
+  document.getElementById("new-item-image-file").click();
+});
+
+document.getElementById("new-item-image-file").addEventListener("change", async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    setStatus("Загрузка фото…");
+    const url = await uploadImageFile(file);
+    document.getElementById("new-item-image").value = url;
+    setImagePreview(document.getElementById("new-item-image-preview"), url);
+    setStatus("Фото загружено. Можно создать блюдо.");
+  } catch (error) {
+    setStatus(error.message, true);
+  } finally {
+    event.target.value = "";
+  }
+});
+
 itemsListEl.addEventListener("click", async (event) => {
+  const pickId = event.target.getAttribute("data-i-image-pick");
+  if (pickId) {
+    const fileInput = itemsListEl.querySelector(`[data-i-image-file="${pickId}"]`);
+    fileInput?.click();
+    return;
+  }
+
   const saveId = event.target.getAttribute("data-i-save");
   const deleteId = event.target.getAttribute("data-i-del");
   try {
@@ -398,6 +521,27 @@ itemsListEl.addEventListener("click", async (event) => {
     }
   } catch (error) {
     setStatus(error.message, true);
+  }
+});
+
+itemsListEl.addEventListener("change", async (event) => {
+  const fileInput = event.target;
+  if (!fileInput.matches("[data-i-image-file]")) return;
+  const itemId = fileInput.getAttribute("data-i-image-file");
+  const file = fileInput.files?.[0];
+  if (!file || !itemId) return;
+  try {
+    setStatus("Загрузка фото…");
+    const url = await uploadImageFile(file);
+    const textInput = itemsListEl.querySelector(`[data-i-image="${itemId}"]`);
+    const preview = itemsListEl.querySelector(`[data-i-image-preview="${itemId}"]`);
+    if (textInput) textInput.value = url;
+    setImagePreview(preview, url);
+    setStatus("Фото загружено. Не забудьте нажать «Сохранить» у блюда.");
+  } catch (error) {
+    setStatus(error.message, true);
+  } finally {
+    fileInput.value = "";
   }
 });
 
@@ -493,8 +637,13 @@ async function enterAdminPanel(token) {
     if (gateEl) gateEl.style.display = "none";
     if (adminAppEl) adminAppEl.style.display = "block";
     currentPage = 1;
-    await reloadAll();
-    setStatus("Токен принят, данные загружены.");
+    try {
+      await reloadAll();
+      setStatus("Токен принят, данные загружены.");
+    } catch (loadError) {
+      setStatus(loadError.message || "Токен принят, но данные не загрузились.", true);
+      gateStatusEl.textContent = loadError.message || "Токен принят, но база недоступна.";
+    }
   } catch (error) {
     gateStatusEl.textContent = error.message || "Не удалось войти.";
     setStatus(error.message || "Не удалось войти.", true);
