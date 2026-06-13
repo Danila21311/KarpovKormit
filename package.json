@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "check:db-url": "node scripts/check-db-url.js"
+    "check:db-url": "node scripts/check-db-url.js",
+    "check:iiko": "node scripts/check-iiko.js",
+    "sync:iiko-menu": "node scripts/sync-iiko-menu-ids.js"
   },
   "keywords": [],
   "author": "",

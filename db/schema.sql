@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   is_stop_list BOOLEAN NOT NULL DEFAULT FALSE,
   sort_order INTEGER NOT NULL DEFAULT 0,
   modifiers JSONB NOT NULL DEFAULT '[]'::jsonb,
+  iiko_product_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

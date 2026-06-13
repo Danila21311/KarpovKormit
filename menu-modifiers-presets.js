@@ -52,6 +52,29 @@
     ]
   };
 
+  /** UUID продуктов-модификаторов в iiko (заполнить после scripts/list-iiko-nomenclature.js) */
+  const IIKO_MODIFIER_PRODUCT_IDS = {
+    "extra-bacon": "",
+    "extra-onion": "",
+    "extra-sriracha": "",
+    "extra-tomato": "",
+    "extra-jalapeno": "",
+    "pel-sour-cream": "",
+    "pel-mushroom-sauce": "",
+    "pel-horseradish": "",
+    "pel-mushrooms": "",
+    "patty-beef-2": "",
+    "patty-beef-3": "",
+    "patty-chicken-2": "",
+    "patty-chicken-3": ""
+  };
+
+  function getIikoProductIdForModifier(modifierId) {
+    const key = String(modifierId || "").trim();
+    const value = IIKO_MODIFIER_PRODUCT_IDS[key];
+    return value && String(value).trim() ? String(value).trim() : null;
+  }
+
   function cloneGroup(group) {
     return {
       id: group.id,
@@ -88,10 +111,11 @@
     return [];
   }
 
-  const api = { getMenuModifiersForItem };
+  const api = { getMenuModifiersForItem, getIikoProductIdForModifier, IIKO_MODIFIER_PRODUCT_IDS };
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   }
   root.getMenuModifiersForItem = getMenuModifiersForItem;
+  root.getIikoProductIdForModifier = getIikoProductIdForModifier;
 })(typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : global);

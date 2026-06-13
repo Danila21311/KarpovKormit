@@ -254,6 +254,7 @@ function itemCard(item) {
         <select data-i-section="${item.id}">${sectionOptions}</select>
         <input type="text" value="${escapeHtml(item.weight || "—")}" data-i-weight="${item.id}">
         <input type="text" value="${escapeHtml(tags)}" data-i-tags="${item.id}" placeholder="теги через запятую">
+        <input type="text" value="${escapeHtml(item.iikoProductId || "")}" data-i-iiko="${item.id}" placeholder="iiko product UUID">
       </div>
       ${imageFieldHtml(item.id, item.image)}
       <textarea rows="2" data-i-desc="${item.id}" style="margin-top:8px;width:100%;">${escapeHtml(item.description || "")}</textarea>
@@ -555,7 +556,8 @@ itemsListEl.addEventListener("click", async (event) => {
           tastyDescription: document.querySelector(`[data-i-tasty="${saveId}"]`).value.trim(),
           isHidden: document.querySelector(`[data-i-hidden="${saveId}"]`).checked,
           isStopList: document.querySelector(`[data-i-stop="${saveId}"]`).checked,
-          sortOrder: Number(document.querySelector(`[data-i-order="${saveId}"]`).value || 0)
+          sortOrder: Number(document.querySelector(`[data-i-order="${saveId}"]`).value || 0),
+          iikoProductId: document.querySelector(`[data-i-iiko="${saveId}"]`).value.trim()
         })
       });
       await reloadAll();

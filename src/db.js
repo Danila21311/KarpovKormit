@@ -152,6 +152,7 @@ async function initDb() {
     `ALTER TABLE menu_items
      ADD COLUMN IF NOT EXISTS modifiers JSONB NOT NULL DEFAULT '[]'::jsonb`
   );
+  await pool.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS iiko_product_id TEXT`);
   await ensureCatalogSeed();
   await ensureDeliverySeed();
   await ensureModifiersSeed();
@@ -341,6 +342,7 @@ async function getAdminMenuData() {
       mi.price,
       COALESCE(mi.image, '') AS image,
       COALESCE(mi.tags, '[]'::jsonb) AS tags,
+      COALESCE(mi.iiko_product_id, '') AS "iikoProductId",
       mi.is_hidden AS "isHidden",
       mi.is_stop_list AS "isStopList",
       mi.sort_order AS "sortOrder"
@@ -366,6 +368,7 @@ async function getAdminMenuData() {
       price: Number(row.price || 0),
       image: row.image || "",
       tags: Array.isArray(row.tags) ? row.tags : [],
+      iikoProductId: row.iikoProductId || "",
       isHidden: Boolean(row.isHidden),
       isStopList: Boolean(row.isStopList),
       sortOrder: Number(row.sortOrder || 0)
@@ -508,6 +511,10 @@ async function updateMenuItem(itemId, input) {
   if (Object.prototype.hasOwnProperty.call(input, "isHidden")) assign("is_hidden", Boolean(input.isHidden));
   if (Object.prototype.hasOwnProperty.call(input, "isStopList")) assign("is_stop_list", Boolean(input.isStopList));
   if (Object.prototype.hasOwnProperty.call(input, "sortOrder")) assign("sort_order", Math.round(Number(input.sortOrder) || 0));
+  if (Object.prototype.hasOwnProperty.call(input, "iikoProductId")) {
+    const raw = String(input.iikoProductId || "").trim();
+    assign("iiko_product_id", raw || null);
+  }
 
   updates.push("updated_at = NOW()");
   values.push(Number(itemId));
@@ -526,6 +533,48 @@ async function deleteMenuItem(itemId) {
   await initDb();
   const result = await pool.query("DELETE FROM menu_items WHERE id = $1", [Number(itemId)]);
   if (!result.rowCount) throw new Error("Item not found.");
+}
+
+async function getMenuItemsIikoProductIds(itemIds) {
+  await initDb();
+  const ids = [...new Set(itemIds.map((id) => Number(id)).filter((id) => Number.isFinite(id) && id > 0))];
+  const map = new Map();
+  if (!ids.length) return map;
+  const result = await pool.query(
+    `SELECT id, name, COALESCE(iiko_product_id, '') AS iiko_product_id
+     FROM menu_items
+     WHERE id = ANY($1::bigint[])`,
+    [ids]
+  );
+  for (const row of result.rows) {
+    const raw = String(row.iiko_product_id || "").trim();
+    map.set(Number(row.id), {
+      name: row.name,
+      iikoProductId: raw || null
+    });
+  }
+  return map;
+}
+
+async function updateMenuItemIikoProductId(itemId, iikoProductId) {
+  await initDb();
+  const raw = String(iikoProductId || "").trim();
+  await pool.query(
+    `UPDATE menu_items SET iiko_product_id = $2, updated_at = NOW() WHERE id = $1`,
+    [Number(itemId), raw || null]
+  );
+}
+
+async function listMenuItemsForIikoSync() {
+  await initDb();
+  const result = await pool.query(
+    `SELECT id, name, COALESCE(iiko_product_id, '') AS iiko_product_id FROM menu_items ORDER BY id ASC`
+  );
+  return result.rows.map((row) => ({
+    id: Number(row.id),
+    name: row.name,
+    iikoProductId: String(row.iiko_product_id || "").trim() || null
+  }));
 }
 
 async function getDeliveryContent() {
@@ -784,5 +833,8 @@ module.exports = {
   createSiteReview,
   getAdminSiteReviews,
   updateSiteReviewStatus,
-  deleteSiteReview
+  deleteSiteReview,
+  getMenuItemsIikoProductIds,
+  updateMenuItemIikoProductId,
+  listMenuItemsForIikoSync
 };

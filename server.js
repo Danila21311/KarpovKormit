@@ -305,7 +305,7 @@ app.post("/api/order", async (req, res) => {
   try {
     internalOrderId = await createOrderWithItems(order);
 
-    const iikoResult = await sendOrderToIiko(order);
+    const iikoResult = await sendOrderToIiko(order, { internalOrderId });
 
     try {
       await updateOrderIntegration(internalOrderId, {
@@ -322,7 +322,7 @@ app.post("/api/order", async (req, res) => {
       await addIntegrationLog({
         orderId: internalOrderId,
         provider: "iiko",
-        requestPayload: order,
+        requestPayload: iikoResult.requestPayload || order,
         responsePayload: iikoResult
       });
     } catch (logErr) {
@@ -395,4 +395,32 @@ if (require.main === module) {
       );
     }
   });
+}
+
+
+function calcLineUnitPrice(basePrice, modifiers) {
+  return basePrice + modifiers.reduce((sum, modifier) => sum + modifier.price, 0);
+}
+
+function buildCartLineKey(menuItemId, modifiers) {
+  if (!modifiers.length) return String(menuItemId);
+  const part = modifiers.map((m) => m.id).sort().join("|");
+  return `${menuItemId}__${part}`;
+}
+
+function addToCartLine({ menuItem, modifiers = [], qty = 1 }) {
+  if (!menuItem || menuItem.isStopList) return;
+  const picked = Array.isArray(modifiers) ? modifiers : [];
+  const cartKey = buildCartLineKey(menuItem.id, picked);
+  const unitPrice = calcLineUnitPrice(menuItem.price, picked);
+  const displayName = formatOrderItemName(menuItem.name, picked);
+
+  if (!appState.cart[cartKey]) {
+    appState.cart[cartKey] = {
+      cartKey, id: menuItem.id, name: displayName, price: unitPrice,
+      modifiers: picked, qty: 0, image: menuItem.image
+    };
+  }
+  appState.cart[cartKey].qty += Math.max(1, Number(qty) || 1);
+  renderCart();
 }

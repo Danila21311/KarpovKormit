@@ -41,15 +41,24 @@ Copy `.env.example` to `.env` and adjust variables.
 | `IIKO_ORDER_TYPE_DELIVERY` | Order type: restaurant courier delivery |
 | `IIKO_ORDER_TYPE_SBERMARKET_PICKUP` | Order type: SberMarket pickup (optional on site) |
 | `IIKO_PAYMENT_TYPE_ID` | Payment type UUID |
+| `IIKO_PAYMENT_TYPE_KIND` | `Cash`, `Card`, etc. (default `Cash`) |
+| `IIKO_DELIVERY_CITY` | City for delivery address (default `Оренбург`) |
+| `IIKO_DEFAULT_LAT` / `IIKO_DEFAULT_LON` | Fallback coordinates for delivery point |
 | `IIKO_EXTERNAL_MENU_ID` | External menu id |
 | `IIKO_PRICE_CATEGORY_ID` | Price category UUID |
 
-Current implementation uses stub mode by default:
+### Live iiko flow
 
-- `IIKO_STUB_MODE=true` — fake successful response
-- `IIKO_STUB_MODE=false` — returns integration-not-configured until real iiko calls are implemented
+1. Set env vars (at minimum `IIKO_API_LOGIN`, `IIKO_ORGANIZATION_ID`, `IIKO_TERMINAL_GROUP_ID`, `IIKO_PAYMENT_TYPE_ID`).
+2. Check connection: `node scripts/check-iiko.js`
+3. Map site dishes to iiko products: `node scripts/sync-iiko-menu-ids.js` (or set `iiko product UUID` in admin for each dish).
+4. Optional: map modifier UUIDs in `menu-modifiers-presets.js` → `IIKO_MODIFIER_PRODUCT_IDS` (use `node scripts/list-iiko-nomenclature.js бекон`).
+5. Set `IIKO_STUB_MODE=false` on Railway and redeploy.
+6. Place a test order; check `integration_logs` and iikoOffice.
 
-Next step is to implement real requests in `src/iiko-client.js` using `src/iiko-config.js`:
+Current modes:
 
-- `/api/1/access_token`
-- `/api/1/order/create` (and related endpoints per iiko docs)
+- `IIKO_STUB_MODE=true` — fake successful response (default)
+- `IIKO_STUB_MODE=false` — real `/api/1/deliveries/create` with command status polling
+
+Implementation: `src/iiko-api.js`, `src/iiko-order-builder.js`, `src/iiko-client.js`.

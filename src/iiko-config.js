@@ -1,6 +1,5 @@
 /**
  * Central place for iiko Cloud / iikoTransport-related env vars.
- * Used when IIKO_STUB_MODE=false and real API calls are implemented.
  */
 
 function trimOrUndefined(value) {
@@ -18,15 +17,28 @@ function getIikoConfig() {
     orderTypeDeliveryId: trimOrUndefined(process.env.IIKO_ORDER_TYPE_DELIVERY),
     orderTypeSbermarketPickupId: trimOrUndefined(process.env.IIKO_ORDER_TYPE_SBERMARKET_PICKUP),
     paymentTypeId: trimOrUndefined(process.env.IIKO_PAYMENT_TYPE_ID),
+    paymentTypeKind: trimOrUndefined(process.env.IIKO_PAYMENT_TYPE_KIND) || "Cash",
     externalMenuId: trimOrUndefined(process.env.IIKO_EXTERNAL_MENU_ID),
-    priceCategoryId: trimOrUndefined(process.env.IIKO_PRICE_CATEGORY_ID)
+    priceCategoryId: trimOrUndefined(process.env.IIKO_PRICE_CATEGORY_ID),
+    deliveryCity: trimOrUndefined(process.env.IIKO_DELIVERY_CITY) || "Оренбург",
+    defaultLatitude: trimOrUndefined(process.env.IIKO_DEFAULT_LAT),
+    defaultLongitude: trimOrUndefined(process.env.IIKO_DEFAULT_LON)
   };
 }
 
-/** True when minimal secrets/refs exist for a future live integration (terminal group still required for orders). */
+function validateIikoConfigForOrders() {
+  const config = getIikoConfig();
+  const missing = [];
+  if (!config.apiLogin) missing.push("IIKO_API_LOGIN");
+  if (!config.organizationId) missing.push("IIKO_ORGANIZATION_ID");
+  if (!config.terminalGroupId) missing.push("IIKO_TERMINAL_GROUP_ID");
+  if (!config.paymentTypeId) missing.push("IIKO_PAYMENT_TYPE_ID");
+  return { ok: missing.length === 0, missing, config };
+}
+
 function hasIikoOrganization() {
   const c = getIikoConfig();
   return Boolean(c.organizationId);
 }
 
-module.exports = { getIikoConfig, hasIikoOrganization };
+module.exports = { getIikoConfig, validateIikoConfigForOrders, hasIikoOrganization };
